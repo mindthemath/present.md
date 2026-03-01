@@ -7,10 +7,13 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css" id="theme" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/highlight/monokai.css" />
     <link rel="stylesheet" href="./custom.css" />
   </head>
   <body>
+    <div id="deck-header" aria-live="polite">
+      <span id="deck-header-text"></span>
+    </div>
+
     <div class="reveal">
       <div class="slides">
         <section
@@ -30,21 +33,116 @@
         center: false,
         controls: false,
         progress: false,
+        minScale: 1,
+        maxScale: 1,
         margin: 0.04,
         transition: "none",
         plugins: [RevealMarkdown, RevealHighlight],
       });
 
-      const counter = document.getElementById("deck-counter");
+    const header = document.getElementById("deck-header");
+    const headerText = document.getElementById("deck-header-text");
+    const counter = document.getElementById("deck-counter");
+    const baseDpr = window.devicePixelRatio || 1;
 
-      function updateCounter() {
+    function slideHeading(slide) {
+      if (!slide) return "";
+      const heading = slide.querySelector(
+        ":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6"
+      );
+      return heading ? heading.textContent.trim() : "";
+    }
+
+    function zoomFactor() {
+      const dprZoom = (window.devicePixelRatio || baseDpr) / baseDpr;
+      const viewportZoom = window.visualViewport?.scale || 1;
+      const zoom = dprZoom * viewportZoom;
+      return Number.isFinite(zoom) && zoom > 0 ? zoom : 1;
+    }
+
+    function stabilizeChromeForZoom() {
+      const zoom = zoomFactor();
+      const inverse = 1 / zoom;
+
+      header.style.transformOrigin = "top left";
+      header.style.transform = `scale(${inverse})`;
+      header.style.width = `${zoom * 100}%`;
+
+      counter.style.transformOrigin = "bottom left";
+      counter.style.transform = `scale(${inverse})`;
+    }
+
+    function normalizeLanguage(lang) {
+      const aliases = {
+        js: "javascript",
+        ts: "typescript",
+        sh: "bash",
+        yml: "yaml",
+        py: "python",
+        txt: "text",
+      };
+      const lower = (lang || "").toLowerCase();
+      return aliases[lower] || lower;
+    }
+
+    function detectLanguage(code) {
+      const classes = Array.from(code.classList || []);
+      for (const name of classes) {
+        if (name.startsWith("language-")) {
+          return normalizeLanguage(name.slice(9));
+        }
+      }
+
+      const common = new Set([
+        "javascript",
+        "typescript",
+        "bash",
+        "json",
+        "yaml",
+        "python",
+        "go",
+        "text",
+        "js",
+        "ts",
+        "sh",
+        "yml",
+        "py",
+        "txt",
+      ]);
+
+      for (const name of classes) {
+        if (common.has(name.toLowerCase())) {
+          return normalizeLanguage(name);
+        }
+      }
+      return "";
+    }
+
+    function decorateCodeBlocks() {
+      document.querySelectorAll(".reveal pre > code").forEach((code) => {
+        const pre = code.parentElement;
+        if (!pre || pre.dataset.rawDecorated === "1") return;
+        pre.dataset.lang = detectLanguage(code);
+        pre.dataset.rawDecorated = "1";
+        pre.classList.add("raw-fence");
+      });
+    }
+
+      function updateChrome() {
+        decorateCodeBlocks();
+        headerText.textContent = slideHeading(deck.getCurrentSlide());
         const current = deck.getSlidePastCount(deck.getCurrentSlide()) + 1;
         const total = deck.getTotalSlides();
         counter.textContent = `${current} / ${total} | present.md`;
+        stabilizeChromeForZoom();
       }
 
-      deck.on("ready", updateCounter);
-      deck.on("slidechanged", updateCounter);
+      deck.on("ready", updateChrome);
+      deck.on("slidechanged", updateChrome);
+      window.addEventListener("resize", stabilizeChromeForZoom);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", stabilizeChromeForZoom);
+      }
       deck.initialize();
     </script>
   </body>

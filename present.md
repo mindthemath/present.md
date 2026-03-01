@@ -71,6 +71,28 @@ Location: /v1/projects/onboarding-revamp
 
 ---
 
+## Python Validation Script
+```python
+from typing import Any
+
+
+def validate_payload(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+
+    if not payload.get("project"):
+        errors.append("project is required")
+    if payload.get("status") not in {"planned", "in_progress", "blocked", "done"}:
+        errors.append("status must be one of planned/in_progress/blocked/done")
+
+    metrics = payload.get("metrics", {})
+    if not isinstance(metrics.get("activation_rate"), (int, float)):
+        errors.append("metrics.activation_rate must be numeric")
+
+    return errors
+```
+
+---
+
 ## UI Logic Snippet
 ```ts
 type Status = "planned" | "in_progress" | "blocked" | "done";
@@ -111,4 +133,3 @@ export function badgeColor(status: Status): string {
 1. Confirm scope for milestone one.
 2. Lock KPI definitions with analytics.
 3. Start pilot implementation with two teams.
-

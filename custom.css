@@ -17,24 +17,12 @@
 
 .reveal .slides section {
   box-sizing: border-box;
-  padding-top: 4.8rem;
+  padding-top: 4.6rem;
   text-align: left;
 }
 
 .reveal .slides section > :is(h1, h2, h3, h4, h5, h6):first-child {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  margin: 0;
-  padding: 0.6rem 1rem;
-  border: 1px solid var(--line);
-  font-size: clamp(1.2rem, 2.2vw, 2rem);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1.2;
-  text-align: center;
-  color: var(--fg);
+  display: none;
 }
 
 .reveal pre,
@@ -42,8 +30,119 @@
   font-family: "JetBrains Mono", "Fira Code", monospace;
 }
 
+.reveal pre {
+  margin: 0.3em 0 0.9em;
+  width: 100%;
+  background: transparent !important;
+  border: 0;
+  box-shadow: none;
+}
+
+.reveal pre.raw-fence::before {
+  content: "```" attr(data-lang);
+  display: block;
+  margin-bottom: 0.2em;
+  color: var(--muted);
+  font-size: 0.66em;
+  letter-spacing: 0.01em;
+}
+
+.reveal pre.raw-fence::after {
+  content: "```";
+  display: block;
+  margin-top: 0.16em;
+  color: var(--muted);
+  font-size: 0.66em;
+  letter-spacing: 0.01em;
+}
+
 .reveal pre code {
   font-size: 0.72em;
+  line-height: 1.44;
+  padding: 0;
+  color: #b9c3d7;
+  background: transparent !important;
+}
+
+.reveal pre code.hljs {
+  background: transparent !important;
+}
+
+.reveal .hljs {
+  color: #d4def0;
+}
+
+.reveal .hljs-comment,
+.reveal .hljs-quote {
+  color: #8a95aa;
+}
+
+.reveal .hljs-keyword,
+.reveal .hljs-selector-tag,
+.reveal .hljs-literal,
+.reveal .hljs-built_in,
+.reveal .hljs-type,
+.reveal .hljs-name {
+  color: #90b7ff;
+}
+
+.reveal .hljs-title,
+.reveal .hljs-function,
+.reveal .hljs-title.function_ {
+  color: #b3d2ff;
+}
+
+.reveal .hljs-string,
+.reveal .hljs-attr,
+.reveal .hljs-template-tag,
+.reveal .hljs-template-variable {
+  color: #9dd7b0;
+}
+
+.reveal .hljs-number,
+.reveal .hljs-symbol,
+.reveal .hljs-bullet,
+.reveal .hljs-variable,
+.reveal .hljs-params {
+  color: #f0c28a;
+}
+
+.reveal .hljs-meta,
+.reveal .hljs-doctag,
+.reveal .hljs-regexp,
+.reveal .hljs-subst {
+  color: #c7a8ff;
+}
+
+#deck-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 50;
+  margin: 0;
+  padding: 0;
+  color: var(--fg);
+  font-family: "JetBrains Mono", "Fira Code", "IBM Plex Mono", monospace;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-align: center;
+}
+
+#deck-header-text {
+  display: block;
+  margin: 0.4rem 0.9rem 0;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--line);
+  background: rgba(12, 15, 20, 0.92);
+  box-shadow: 0 0 0 1px rgba(95, 107, 132, 0.2) inset;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #deck-counter {
@@ -53,6 +152,6 @@
   z-index: 40;
   color: var(--muted);
   font-family: "JetBrains Mono", "Fira Code", monospace;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   letter-spacing: 0.02em;
 }

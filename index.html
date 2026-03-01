@@ -48,6 +48,7 @@
     const headerText = document.getElementById("deck-header-text");
     const counter = document.getElementById("deck-counter");
     const baseDpr = window.devicePixelRatio || 1;
+    const counterBaseOffsetRem = { left: 1.1, bottom: 0.8 };
     let lastWalkthroughState = {
       active: false,
       group: "",
@@ -87,6 +88,8 @@
 
       counter.style.transformOrigin = "bottom left";
       counter.style.transform = `scale(${inverse})`;
+      counter.style.left = `${counterBaseOffsetRem.left * inverse}rem`;
+      counter.style.bottom = `${counterBaseOffsetRem.bottom * inverse}rem`;
     }
 
     function normalizeLanguage(lang) {

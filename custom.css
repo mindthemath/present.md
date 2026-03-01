@@ -187,34 +187,31 @@
   min-height: min(80vh, calc(100vh - 10rem));
   max-height: min(80vh, calc(100vh - 10rem));
   overflow: auto;
-  scroll-behavior: smooth;
 }
 
 .reveal .slides section.ts-walkthrough-2 pre code.has-highlights .hljs-ln-line,
 .reveal .slides section.ts-walkthrough-2 pre code.has-highlights > span,
 .reveal .slides section.ts-walkthrough-3 pre code.has-highlights .hljs-ln-line,
 .reveal .slides section.ts-walkthrough-3 pre code.has-highlights > span {
-  opacity: 1;
+  opacity: 0.58;
   transition: opacity 520ms ease;
 }
 
-.reveal .slides section.ts-walkthrough-2.walkthrough-active pre code.has-highlights .hljs-ln-line,
-.reveal .slides section.ts-walkthrough-2.walkthrough-active pre code.has-highlights > span,
-.reveal .slides section.ts-walkthrough-3.walkthrough-active pre code.has-highlights .hljs-ln-line,
-.reveal .slides section.ts-walkthrough-3.walkthrough-active pre code.has-highlights > span {
-  opacity: 0.58;
-}
-
-.reveal .slides section.ts-walkthrough-2.walkthrough-active pre code.has-highlights .hljs-ln-line.highlight-line,
-.reveal .slides section.ts-walkthrough-2.walkthrough-active pre code.has-highlights > span.highlight-line,
-.reveal .slides section.ts-walkthrough-2.walkthrough-active pre code.has-highlights .highlight-line,
-.reveal .slides section.ts-walkthrough-2.walkthrough-active pre code.has-highlights .highlight-line *,
-.reveal .slides section.ts-walkthrough-3.walkthrough-active pre code.has-highlights .hljs-ln-line.highlight-line,
-.reveal .slides section.ts-walkthrough-3.walkthrough-active pre code.has-highlights > span.highlight-line,
-.reveal .slides section.ts-walkthrough-3.walkthrough-active pre code.has-highlights .highlight-line,
-.reveal .slides section.ts-walkthrough-3.walkthrough-active pre code.has-highlights .highlight-line * {
+.reveal .slides section.ts-walkthrough-2 pre code.has-highlights .hljs-ln-line.highlight-line,
+.reveal .slides section.ts-walkthrough-2 pre code.has-highlights > span.highlight-line,
+.reveal .slides section.ts-walkthrough-2 pre code.has-highlights .highlight-line,
+.reveal .slides section.ts-walkthrough-2 pre code.has-highlights .highlight-line *,
+.reveal .slides section.ts-walkthrough-3 pre code.has-highlights .hljs-ln-line.highlight-line,
+.reveal .slides section.ts-walkthrough-3 pre code.has-highlights > span.highlight-line,
+.reveal .slides section.ts-walkthrough-3 pre code.has-highlights .highlight-line,
+.reveal .slides section.ts-walkthrough-3 pre code.has-highlights .highlight-line * {
   opacity: 1;
   background: transparent !important;
+}
+
+.reveal .slides section.ts-walkthrough.walkthrough-enter pre code.has-highlights .hljs-ln-line,
+.reveal .slides section.ts-walkthrough.walkthrough-enter pre code.has-highlights > span {
+  opacity: 1;
 }
 
 .reveal table.hljs-ln,

@@ -48,6 +48,7 @@
     const headerText = document.getElementById("deck-header-text");
     const counter = document.getElementById("deck-counter");
     const baseDpr = window.devicePixelRatio || 1;
+    let lastWalkthroughStep = 0;
 
     function slideHeading(slide) {
       if (!slide) return "";
@@ -181,31 +182,50 @@
     function runWalkthroughEffects() {
       const slide = deck.getCurrentSlide();
       const step = walkthroughStep(slide);
-      if (!slide || step === 0) return;
+      if (!slide || step === 0) {
+        lastWalkthroughStep = 0;
+        return;
+      }
 
       const code = slide.querySelector("pre code");
       if (!code) return;
 
-      document
-        .querySelectorAll(".reveal .slides section.ts-walkthrough.walkthrough-active")
-        .forEach((node) => node.classList.remove("walkthrough-active"));
+      const prevStep = lastWalkthroughStep;
+      const lineByStep = { 1: 1, 2: 33, 3: 92 };
+
+      const offsetForLine = (lineNumber) => {
+        const lineEl = code.querySelector(`[data-line-number="${lineNumber}"]`);
+        return lineEl ? Math.max(0, lineEl.offsetTop - code.clientHeight * 0.2) : 0;
+      };
+
+      const startLine = lineByStep[prevStep] || 1;
+      const targetLine = lineByStep[step] || 1;
+      const startScroll = offsetForLine(startLine);
+      const targetScroll = offsetForLine(targetLine);
+
+      // Set the initial scroll position immediately to avoid one-frame focus flash.
+      code.scrollTop = startScroll;
+
+      if (step === 1) {
+        requestAnimationFrame(() => {
+          animateScrollTo(code, 0, 560);
+        });
+        lastWalkthroughStep = step;
+        return;
+      }
+
+      if (prevStep === 1) {
+        slide.classList.add("walkthrough-enter");
+      } else {
+        slide.classList.remove("walkthrough-enter");
+      }
 
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const lineEl = code.querySelector(".highlight-line");
-          const targetScroll = lineEl
-            ? Math.max(0, lineEl.offsetTop - code.clientHeight * 0.2)
-            : 0;
-
-          if (step === 1) {
-            code.scrollTop = 0;
-            return;
-          }
-
-          slide.classList.add("walkthrough-active");
-          animateScrollTo(code, targetScroll, 560);
-        });
+        slide.classList.remove("walkthrough-enter");
+        animateScrollTo(code, targetScroll, 560);
       });
+
+      lastWalkthroughStep = step;
     }
 
     function syncHashNow() {

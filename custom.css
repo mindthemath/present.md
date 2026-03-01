@@ -3,6 +3,8 @@
   --fg: #d8dee9;
   --muted: #8f98ab;
   --line: #5f6b84;
+  --slide-pad-left: 4rem;
+  --slide-pad-right: 0.75rem;
 }
 
 .reveal {
@@ -18,8 +20,8 @@
 .reveal .slides section {
   box-sizing: border-box;
   padding-top: 4.6rem;
-  padding-left: 4rem;
-  padding-right: 0.75rem;
+  padding-left: var(--slide-pad-left);
+  padding-right: var(--slide-pad-right);
   text-align: left;
 }
 
@@ -30,8 +32,8 @@
 .reveal .slides section.stack > section {
   box-sizing: border-box;
   padding-top: 4.6rem;
-  padding-left: 4rem;
-  padding-right: 0.75rem;
+  padding-left: var(--slide-pad-left);
+  padding-right: var(--slide-pad-right);
 }
 
 .reveal .slides {
@@ -147,20 +149,59 @@
 }
 
 .reveal .slides section table:not(.hljs-ln) {
-  margin: 0.25em auto 0.8em auto !important;
+  margin: 0.5em auto 0.8em auto !important;
   width: auto;
   border: 1px solid rgba(95, 107, 132, 0.45);
   border-collapse: collapse;
 }
 
-.reveal .slides section > table:not(.hljs-ln) {
+.reveal .slides section > table:not(.hljs-ln),
+.reveal .slides section > figure:has(> table:not(.hljs-ln)) {
   margin-left: auto !important;
   margin-right: auto !important;
+  transform: translateX(calc((var(--slide-pad-right) - var(--slide-pad-left)) / 2));
 }
 
 .reveal .slides section > figure {
   margin-left: auto !important;
   margin-right: auto !important;
+}
+
+.reveal .slides section > figure > table:not(.hljs-ln) {
+  margin: 0 !important;
+}
+
+.reveal .slides section:has(> :is(h1, h2, h3, h4, h5, h6) + table:not(.hljs-ln)),
+.reveal .slides section:has(> :is(h1, h2, h3, h4, h5, h6) + figure:has(> table:not(.hljs-ln))) {
+  display: grid;
+  align-content: center;
+}
+
+.reveal .slides section:has(> :is(h1, h2, h3, h4, h5, h6) + table:not(.hljs-ln))
+  > table:not(.hljs-ln),
+.reveal .slides section:has(> :is(h1, h2, h3, h4, h5, h6) + figure:has(> table:not(.hljs-ln)))
+  > figure:has(> table:not(.hljs-ln)) {
+  transform: none !important;
+}
+
+.reveal .slides section.table-only-slide {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  min-height: calc(100vh - 6.2rem);
+  padding-top: 0 !important;
+  padding-bottom: 1.8rem;
+}
+
+.reveal .slides section.table-only-slide > table:not(.hljs-ln),
+.reveal .slides section.table-only-slide > figure {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  transform: translateX(calc((var(--slide-pad-right) - var(--slide-pad-left)) / 2)) !important;
+}
+
+.reveal .slides section.table-only-slide > figure > table:not(.hljs-ln) {
+  margin: 0 !important;
 }
 
 .reveal .slides section table:not(.hljs-ln) th,

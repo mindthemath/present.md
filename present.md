@@ -651,6 +651,17 @@ fn format_summary(team: &str, score: f32) -> String {
 
 ---
 
+<!-- .slide: class="table-only-slide" -->
+## Table Centering Check
+| Metric | Target | Current |
+| --- | --- | --- |
+| P95 latency | < 250ms | 312ms |
+| Error rate | < 0.10% | 0.18% |
+| Availability | >= 99.90% | 99.82% |
+
+---
+
+<!-- .slide: class="table-only-slide" -->
 ## Risks and Mitigations
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
@@ -681,6 +692,12 @@ Status: At risk (mitigation active)
 - Rollback criteria pre-defined per release
 - Canary window extended from 15m to 45m
 - On-call handoff checklist required before deploy
+
+| Signal | Target | Current |
+| --- | --- | --- |
+| P95 latency | < 250ms | 312ms |
+| Error rate | < 0.10% | 0.18% |
+| Availability | >= 99.90% | 99.82% |
 
 ---
 

@@ -139,6 +139,75 @@
       });
     }
 
+    function walkthroughStep(slide) {
+      if (!slide) return 0;
+      if (slide.classList.contains("ts-walkthrough-1")) return 1;
+      if (slide.classList.contains("ts-walkthrough-2")) return 2;
+      if (slide.classList.contains("ts-walkthrough-3")) return 3;
+      return 0;
+    }
+
+    function configureWalkthroughAutoAnimateIds() {
+      document.querySelectorAll(".reveal .slides section.ts-walkthrough").forEach((slide) => {
+        const pre = slide.querySelector("pre");
+        const code = slide.querySelector("pre code");
+        if (pre) pre.dataset.id = "ts-walkthrough-pre";
+        if (code) code.dataset.id = "ts-walkthrough-code";
+      });
+    }
+
+    function animateScrollTo(element, target, durationMs) {
+      const start = element.scrollTop;
+      const delta = target - start;
+      if (Math.abs(delta) < 2) {
+        element.scrollTop = target;
+        return;
+      }
+
+      const startTs = performance.now();
+      const duration = Math.max(120, durationMs);
+
+      function frame(now) {
+        const elapsed = now - startTs;
+        const t = Math.min(1, elapsed / duration);
+        const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        element.scrollTop = start + delta * eased;
+        if (t < 1) requestAnimationFrame(frame);
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    function runWalkthroughEffects() {
+      const slide = deck.getCurrentSlide();
+      const step = walkthroughStep(slide);
+      if (!slide || step === 0) return;
+
+      const code = slide.querySelector("pre code");
+      if (!code) return;
+
+      document
+        .querySelectorAll(".reveal .slides section.ts-walkthrough.walkthrough-active")
+        .forEach((node) => node.classList.remove("walkthrough-active"));
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const lineEl = code.querySelector(".highlight-line");
+          const targetScroll = lineEl
+            ? Math.max(0, lineEl.offsetTop - code.clientHeight * 0.2)
+            : 0;
+
+          if (step === 1) {
+            code.scrollTop = 0;
+            return;
+          }
+
+          slide.classList.add("walkthrough-active");
+          animateScrollTo(code, targetScroll, 560);
+        });
+      });
+    }
+
     function syncHashNow() {
       const { h, v, f } = deck.getIndices();
       const parts = [h + 1];
@@ -168,6 +237,7 @@
     }
 
       function updateChrome() {
+        configureWalkthroughAutoAnimateIds();
         decorateCodeBlocks();
         headerText.textContent = slideHeading(deck.getCurrentSlide());
         const current = currentPositionLabel();
@@ -175,6 +245,7 @@
         counter.textContent = `${current} / ${total} | present.md`;
         stabilizeChromeForZoom();
         syncHashNow();
+        runWalkthroughEffects();
       }
 
       deck.on("ready", updateChrome);

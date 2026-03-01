@@ -187,6 +187,34 @@
   min-height: min(80vh, calc(100vh - 10rem));
   max-height: min(80vh, calc(100vh - 10rem));
   overflow: auto;
+  scroll-behavior: smooth;
+}
+
+.reveal .slides section.ts-walkthrough-2 pre code.has-highlights .hljs-ln-line,
+.reveal .slides section.ts-walkthrough-2 pre code.has-highlights > span,
+.reveal .slides section.ts-walkthrough-3 pre code.has-highlights .hljs-ln-line,
+.reveal .slides section.ts-walkthrough-3 pre code.has-highlights > span {
+  opacity: 1;
+  transition: opacity 520ms ease;
+}
+
+.reveal .slides section.ts-walkthrough-2.walkthrough-active pre code.has-highlights .hljs-ln-line,
+.reveal .slides section.ts-walkthrough-2.walkthrough-active pre code.has-highlights > span,
+.reveal .slides section.ts-walkthrough-3.walkthrough-active pre code.has-highlights .hljs-ln-line,
+.reveal .slides section.ts-walkthrough-3.walkthrough-active pre code.has-highlights > span {
+  opacity: 0.58;
+}
+
+.reveal .slides section.ts-walkthrough-2.walkthrough-active pre code.has-highlights .hljs-ln-line.highlight-line,
+.reveal .slides section.ts-walkthrough-2.walkthrough-active pre code.has-highlights > span.highlight-line,
+.reveal .slides section.ts-walkthrough-2.walkthrough-active pre code.has-highlights .highlight-line,
+.reveal .slides section.ts-walkthrough-2.walkthrough-active pre code.has-highlights .highlight-line *,
+.reveal .slides section.ts-walkthrough-3.walkthrough-active pre code.has-highlights .hljs-ln-line.highlight-line,
+.reveal .slides section.ts-walkthrough-3.walkthrough-active pre code.has-highlights > span.highlight-line,
+.reveal .slides section.ts-walkthrough-3.walkthrough-active pre code.has-highlights .highlight-line,
+.reveal .slides section.ts-walkthrough-3.walkthrough-active pre code.has-highlights .highlight-line * {
+  opacity: 1;
+  background: transparent !important;
 }
 
 .reveal table.hljs-ln,
@@ -197,6 +225,14 @@
 
 .reveal table.hljs-ln td {
   padding: 0 !important;
+}
+
+.reveal table.hljs-ln td.hljs-ln-numbers {
+  padding-right: 0.7em !important;
+}
+
+.reveal table.hljs-ln td.hljs-ln-code {
+  padding-left: 0.15em !important;
 }
 
 .reveal .slides section > :is(h1, h2, h3, h4, h5, h6):first-child {

@@ -135,7 +135,7 @@ export function badgeColor(status: Status): string {
 
 ---
 
-<!-- .slide: data-auto-animate class="ts-walkthrough" -->
+<!-- .slide: data-auto-animate class="ts-walkthrough ts-walkthrough-1" -->
 ## TypeScript Walkthrough [1/3]
 ```ts [1-200]
 type Stage = "queued" | "running" | "blocked" | "done";
@@ -250,7 +250,7 @@ export function formatDashboard(rows: TeamSummary[]): string[] {
 
 ---
 
-<!-- .slide: data-auto-animate class="ts-walkthrough" -->
+<!-- .slide: data-auto-animate class="ts-walkthrough ts-walkthrough-2" -->
 ## TypeScript Walkthrough [2/3]
 ```ts [33-44]
 type Stage = "queued" | "running" | "blocked" | "done";
@@ -365,7 +365,7 @@ export function formatDashboard(rows: TeamSummary[]): string[] {
 
 ---
 
-<!-- .slide: data-auto-animate class="ts-walkthrough" -->
+<!-- .slide: data-auto-animate class="ts-walkthrough ts-walkthrough-3" -->
 ## TypeScript Walkthrough [3/3]
 ```ts [92-104]
 type Stage = "queued" | "running" | "blocked" | "done";

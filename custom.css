@@ -187,6 +187,28 @@
   min-height: min(80vh, calc(100vh - 10rem));
   max-height: min(80vh, calc(100vh - 10rem));
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(143, 152, 171, 0.55) rgba(6, 8, 12, 0.35);
+}
+
+.reveal .slides section.ts-walkthrough pre code::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.reveal .slides section.ts-walkthrough pre code::-webkit-scrollbar-track {
+  background: rgba(6, 8, 12, 0.35);
+  border-radius: 999px;
+}
+
+.reveal .slides section.ts-walkthrough pre code::-webkit-scrollbar-thumb {
+  background: rgba(143, 152, 171, 0.55);
+  border-radius: 999px;
+  border: 2px solid rgba(6, 8, 12, 0.35);
+}
+
+.reveal .slides section.ts-walkthrough pre code::-webkit-scrollbar-thumb:hover {
+  background: rgba(184, 194, 214, 0.7);
 }
 
 .reveal .slides section.ts-walkthrough-2 pre code.has-highlights .hljs-ln-line,

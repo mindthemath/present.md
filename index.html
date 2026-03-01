@@ -30,12 +30,14 @@
     <script>
       const deck = new Reveal({
         hash: true,
+        hashOneBasedIndex: true,
+        navigationMode: "linear",
         center: false,
         controls: false,
         progress: false,
         minScale: 1,
         maxScale: 1,
-        margin: 0.04,
+        margin: 0,
         transition: "none",
         plugins: [RevealMarkdown, RevealHighlight],
       });

@@ -177,16 +177,18 @@
   margin-left: 0 !important;
   margin-right: auto !important;
   width: 100%;
-  height: min(80vh, calc(100vh - 10rem));
-  max-height: min(80vh, calc(100vh - 10rem));
-  overflow: hidden;
+  overflow: visible;
 }
 
 .reveal .slides section.code-walkthrough pre code {
   display: block;
-  min-height: min(80vh, calc(100vh - 10rem));
-  max-height: min(80vh, calc(100vh - 10rem));
+  height: min(80vh, calc(100vh - 11.5rem));
+  max-height: min(80vh, calc(100vh - 11.5rem));
   overflow: auto;
+  box-sizing: border-box;
+  padding-bottom: 0.9em;
+  scroll-padding-bottom: 1.1em;
+  scrollbar-gutter: stable both-edges;
   scrollbar-width: thin;
   scrollbar-color: rgba(143, 152, 171, 0.55) rgba(6, 8, 12, 0.35);
 }

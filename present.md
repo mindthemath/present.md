@@ -480,6 +480,177 @@ export function formatDashboard(rows: TeamSummary[]): string[] {
 
 ---
 
+<!-- .slide: data-auto-animate class="code-walkthrough" -->
+## Rust Walkthrough [1/3]
+```rust [1-50]
+use std::collections::HashMap;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+enum Stage {
+    Queued,
+    Running,
+    Blocked,
+    Done,
+}
+
+#[derive(Clone, Debug)]
+struct WorkItem {
+    team: &'static str,
+    stage: Stage,
+    effort: f32,
+    risk: f32,
+}
+
+fn clamp(value: f32, min: f32, max: f32) -> f32 {
+    value.max(min).min(max)
+}
+
+fn risk_score(item: &WorkItem) -> f32 {
+    let stage_weight = match item.stage {
+        Stage::Queued => 0.2,
+        Stage::Running => 0.4,
+        Stage::Blocked => 0.9,
+        Stage::Done => 0.1,
+    };
+    let effort_factor = clamp(item.effort / 13.0, 0.0, 1.0);
+    clamp((0.65 * item.risk + 0.35 * effort_factor) * stage_weight, 0.0, 1.0)
+}
+
+fn summarize(items: &[WorkItem]) -> HashMap<&'static str, f32> {
+    let mut grouped: HashMap<&'static str, Vec<f32>> = HashMap::new();
+    for item in items {
+        grouped.entry(item.team).or_default().push(risk_score(item));
+    }
+    grouped
+        .into_iter()
+        .map(|(team, scores)| {
+            let avg = scores.iter().sum::<f32>() / scores.len() as f32;
+            (team, (avg * 100.0).round() / 100.0)
+        })
+        .collect()
+}
+
+fn format_summary(team: &str, score: f32) -> String {
+    format!("team={} | avg_risk={:.2}", team, score)
+}
+```
+
+---
+
+<!-- .slide: data-auto-animate class="code-walkthrough" -->
+## Rust Walkthrough [2/3]
+```rust [19-32,48-50]
+use std::collections::HashMap;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+enum Stage {
+    Queued,
+    Running,
+    Blocked,
+    Done,
+}
+
+#[derive(Clone, Debug)]
+struct WorkItem {
+    team: &'static str,
+    stage: Stage,
+    effort: f32,
+    risk: f32,
+}
+
+fn clamp(value: f32, min: f32, max: f32) -> f32 {
+    value.max(min).min(max)
+}
+
+fn risk_score(item: &WorkItem) -> f32 {
+    let stage_weight = match item.stage {
+        Stage::Queued => 0.2,
+        Stage::Running => 0.4,
+        Stage::Blocked => 0.9,
+        Stage::Done => 0.1,
+    };
+    let effort_factor = clamp(item.effort / 13.0, 0.0, 1.0);
+    clamp((0.65 * item.risk + 0.35 * effort_factor) * stage_weight, 0.0, 1.0)
+}
+
+fn summarize(items: &[WorkItem]) -> HashMap<&'static str, f32> {
+    let mut grouped: HashMap<&'static str, Vec<f32>> = HashMap::new();
+    for item in items {
+        grouped.entry(item.team).or_default().push(risk_score(item));
+    }
+    grouped
+        .into_iter()
+        .map(|(team, scores)| {
+            let avg = scores.iter().sum::<f32>() / scores.len() as f32;
+            (team, (avg * 100.0).round() / 100.0)
+        })
+        .collect()
+}
+
+fn format_summary(team: &str, score: f32) -> String {
+    format!("team={} | avg_risk={:.2}", team, score)
+}
+```
+
+---
+
+<!-- .slide: data-auto-animate class="code-walkthrough" -->
+## Rust Walkthrough [3/3]
+```rust [34-45,48-50]
+use std::collections::HashMap;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+enum Stage {
+    Queued,
+    Running,
+    Blocked,
+    Done,
+}
+
+#[derive(Clone, Debug)]
+struct WorkItem {
+    team: &'static str,
+    stage: Stage,
+    effort: f32,
+    risk: f32,
+}
+
+fn clamp(value: f32, min: f32, max: f32) -> f32 {
+    value.max(min).min(max)
+}
+
+fn risk_score(item: &WorkItem) -> f32 {
+    let stage_weight = match item.stage {
+        Stage::Queued => 0.2,
+        Stage::Running => 0.4,
+        Stage::Blocked => 0.9,
+        Stage::Done => 0.1,
+    };
+    let effort_factor = clamp(item.effort / 13.0, 0.0, 1.0);
+    clamp((0.65 * item.risk + 0.35 * effort_factor) * stage_weight, 0.0, 1.0)
+}
+
+fn summarize(items: &[WorkItem]) -> HashMap<&'static str, f32> {
+    let mut grouped: HashMap<&'static str, Vec<f32>> = HashMap::new();
+    for item in items {
+        grouped.entry(item.team).or_default().push(risk_score(item));
+    }
+    grouped
+        .into_iter()
+        .map(|(team, scores)| {
+            let avg = scores.iter().sum::<f32>() / scores.len() as f32;
+            (team, (avg * 100.0).round() / 100.0)
+        })
+        .collect()
+}
+
+fn format_summary(team: &str, score: f32) -> String {
+    format!("team={} | avg_risk={:.2}", team, score)
+}
+```
+
+---
+
 ## Risks and Mitigations
 | Risk | Impact | Mitigation |
 | --- | --- | --- |

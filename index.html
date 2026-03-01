@@ -50,6 +50,7 @@
     const baseDpr = window.devicePixelRatio || 1;
     let lastWalkthroughState = {
       active: false,
+      group: "",
       hadHighlights: false,
       targetScroll: 0,
     };
@@ -148,12 +149,25 @@
       return !!slide && slide.classList.contains("code-walkthrough");
     }
 
+    function walkthroughGroupKey(slide) {
+      if (!slide) return "default";
+      const heading = slide.querySelector(
+        ":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6"
+      );
+      const raw = heading ? heading.textContent.trim() : "";
+      const base = raw.replace(/\s*\[\d+\/\d+\]\s*$/, "").trim().toLowerCase();
+      const slug = base.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+      return slug || "default";
+    }
+
     function configureWalkthroughAutoAnimateIds() {
       document.querySelectorAll(".reveal .slides section.code-walkthrough").forEach((slide) => {
+        const group = walkthroughGroupKey(slide);
+        slide.dataset.autoAnimateId = `code-walkthrough-${group}`;
         const pre = slide.querySelector("pre");
         const code = slide.querySelector("pre code");
-        if (pre) pre.dataset.id = "code-walkthrough-pre";
-        if (code) code.dataset.id = "code-walkthrough-code";
+        if (pre) pre.dataset.id = `code-walkthrough-pre-${group}`;
+        if (code) code.dataset.id = `code-walkthrough-code-${group}`;
       });
     }
 
@@ -188,12 +202,14 @@
 
         lastWalkthroughState = {
           active: false,
+          group: "",
           hadHighlights: false,
           targetScroll: 0,
         };
         return;
       }
 
+      const group = walkthroughGroupKey(slide);
       const code = slide.querySelector("pre code");
       if (!code) return;
 
@@ -202,13 +218,13 @@
       const targetScroll = hasHighlights
         ? Math.max(0, firstHighlight.offsetTop - code.clientHeight * 0.2)
         : 0;
-      const startScroll = lastWalkthroughState.active ? lastWalkthroughState.targetScroll : 0;
+      const sameGroup = lastWalkthroughState.active && lastWalkthroughState.group === group;
+      const startScroll = sameGroup ? lastWalkthroughState.targetScroll : 0;
 
       // Set initial position immediately to avoid one-frame focus flash.
       code.scrollTop = startScroll;
 
-      const shouldFadeFromBright =
-        hasHighlights && (!lastWalkthroughState.active || !lastWalkthroughState.hadHighlights);
+      const shouldFadeFromBright = hasHighlights && (!sameGroup || !lastWalkthroughState.hadHighlights);
       if (shouldFadeFromBright) {
         slide.classList.add("walkthrough-enter");
       } else {
@@ -222,6 +238,7 @@
 
       lastWalkthroughState = {
         active: true,
+        group,
         hadHighlights: hasHighlights,
         targetScroll,
       };
@@ -269,6 +286,8 @@
 
       deck.on("ready", updateChrome);
       deck.on("slidechanged", updateChrome);
+      deck.on("fragmentshown", updateChrome);
+      deck.on("fragmenthidden", updateChrome);
       window.addEventListener("resize", stabilizeChromeForZoom);
       if (window.visualViewport) {
         window.visualViewport.addEventListener("resize", stabilizeChromeForZoom);

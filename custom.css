@@ -1,0 +1,58 @@
+:root {
+  --bg: #0c0f14;
+  --fg: #d8dee9;
+  --muted: #8f98ab;
+  --line: #5f6b84;
+}
+
+.reveal {
+  font-family: "JetBrains Mono", "Fira Code", "IBM Plex Mono", monospace;
+  color: var(--fg);
+  font-size: 30px;
+}
+
+.reveal-viewport {
+  background: radial-gradient(circle at 20% 10%, #141a24 0%, var(--bg) 55%);
+}
+
+.reveal .slides section {
+  box-sizing: border-box;
+  padding-top: 4.8rem;
+  text-align: left;
+}
+
+.reveal .slides section > :is(h1, h2, h3, h4, h5, h6):first-child {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--line);
+  font-size: clamp(1.2rem, 2.2vw, 2rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--fg);
+}
+
+.reveal pre,
+.reveal code {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+.reveal pre code {
+  font-size: 0.72em;
+}
+
+#deck-counter {
+  position: fixed;
+  left: 1.1rem;
+  bottom: 0.8rem;
+  z-index: 40;
+  color: var(--muted);
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}

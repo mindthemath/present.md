@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>present.md - reveal.js</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css" id="theme" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/highlight/monokai.css" />
+    <link rel="stylesheet" href="./custom.css" />
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section
+          data-markdown="present.md"
+        ></section>
+      </div>
+    </div>
+
+    <div id="deck-counter" aria-live="polite"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/highlight/highlight.js"></script>
+    <script>
+      const deck = new Reveal({
+        hash: true,
+        center: false,
+        controls: false,
+        progress: false,
+        margin: 0.04,
+        transition: "none",
+        plugins: [RevealMarkdown, RevealHighlight],
+      });
+
+      const counter = document.getElementById("deck-counter");
+
+      function updateCounter() {
+        const current = deck.getSlidePastCount(deck.getCurrentSlide()) + 1;
+        const total = deck.getTotalSlides();
+        counter.textContent = `${current} / ${total} | present.md`;
+      }
+
+      deck.on("ready", updateCounter);
+      deck.on("slidechanged", updateCounter);
+      deck.initialize();
+    </script>
+  </body>
+</html>

@@ -130,6 +130,19 @@
       });
     }
 
+    function syncHashNow() {
+      const { h, v, f } = deck.getIndices();
+      const parts = [h + 1];
+
+      if (v > 0 || f > 0) parts.push(v + 1);
+      if (f > 0) parts.push(f + 1);
+
+      const nextHash = `#/${parts.join("/")}`;
+      if (window.location.hash !== nextHash) {
+        window.history.replaceState(null, "", nextHash);
+      }
+    }
+
       function updateChrome() {
         decorateCodeBlocks();
         headerText.textContent = slideHeading(deck.getCurrentSlide());
@@ -137,6 +150,7 @@
         const total = deck.getTotalSlides();
         counter.textContent = `${current} / ${total} | present.md`;
         stabilizeChromeForZoom();
+        syncHashNow();
       }
 
       deck.on("ready", updateChrome);

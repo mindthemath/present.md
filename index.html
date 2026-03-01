@@ -52,7 +52,14 @@
       const heading = slide.querySelector(
         ":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6"
       );
-      return heading ? heading.textContent.trim() : "";
+      if (!heading) return "";
+
+      const level = Number.parseInt(heading.tagName.slice(1), 10);
+      const hashes = Number.isInteger(level) && level >= 1 && level <= 6
+        ? "#".repeat(level)
+        : "#";
+
+      return `${hashes} ${heading.textContent.trim()}`;
     }
 
     function zoomFactor() {

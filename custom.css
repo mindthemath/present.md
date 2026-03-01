@@ -18,7 +18,7 @@
 .reveal .slides section {
   box-sizing: border-box;
   padding-top: 4.6rem;
-  padding-left: 0.75rem;
+  padding-left: 4rem;
   padding-right: 0.75rem;
   text-align: left;
 }
@@ -30,7 +30,7 @@
 .reveal .slides section.stack > section {
   box-sizing: border-box;
   padding-top: 4.6rem;
-  padding-left: 0.75rem;
+  padding-left: 4rem;
   padding-right: 0.75rem;
 }
 

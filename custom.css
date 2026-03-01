@@ -146,14 +146,14 @@
   color: var(--muted);
 }
 
-.reveal .slides section table {
+.reveal .slides section table:not(.hljs-ln) {
   margin: 0.25em auto 0.8em auto !important;
   width: auto;
   border: 1px solid rgba(95, 107, 132, 0.45);
   border-collapse: collapse;
 }
 
-.reveal .slides section > table {
+.reveal .slides section > table:not(.hljs-ln) {
   margin-left: auto !important;
   margin-right: auto !important;
 }
@@ -163,14 +163,30 @@
   margin-right: auto !important;
 }
 
-.reveal .slides section th,
-.reveal .slides section td {
+.reveal .slides section table:not(.hljs-ln) th,
+.reveal .slides section table:not(.hljs-ln) td {
   border: 1px solid rgba(95, 107, 132, 0.45);
   padding: 0.18em 0.45em;
 }
 
-.reveal .slides section table tbody tr:last-child td {
+.reveal .slides section table:not(.hljs-ln) tbody tr:last-child td {
   border-bottom: 1px solid rgba(95, 107, 132, 0.45) !important;
+}
+
+.reveal .slides section.ts-walkthrough pre {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 94%;
+}
+
+.reveal table.hljs-ln,
+.reveal table.hljs-ln td,
+.reveal table.hljs-ln tr {
+  border: 0 !important;
+}
+
+.reveal table.hljs-ln td {
+  padding: 0 !important;
 }
 
 .reveal .slides section > :is(h1, h2, h3, h4, h5, h6):first-child {

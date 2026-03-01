@@ -132,6 +132,352 @@ export function badgeColor(status: Status): string {
 }
 ```
 
+
+---
+
+<!-- .slide: data-auto-animate class="ts-walkthrough" -->
+## TypeScript Walkthrough [1/3]
+```ts [1-200]
+type Stage = "queued" | "running" | "blocked" | "done";
+
+type WorkItem = {
+  id: string;
+  title: string;
+  team: "core" | "growth" | "platform";
+  owner: string;
+  stage: Stage;
+  effort: number;
+  risk: number;
+  updatedAt: string;
+};
+
+type TeamSummary = {
+  team: WorkItem["team"];
+  total: number;
+  running: number;
+  blocked: number;
+  done: number;
+  avgRisk: number;
+  health: "green" | "yellow" | "red";
+};
+
+const HEALTH_LIMITS = {
+  green: 0.28,
+  yellow: 0.56,
+};
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function toRiskScore(item: WorkItem): number {
+  const stageWeight: Record<Stage, number> = {
+    queued: 0.2,
+    running: 0.4,
+    blocked: 0.9,
+    done: 0.1,
+  };
+
+  const effortFactor = clamp(item.effort / 13, 0, 1);
+  const base = 0.65 * item.risk + 0.35 * effortFactor;
+  return clamp(base * stageWeight[item.stage], 0, 1);
+}
+
+function groupByTeam(items: WorkItem[]): Record<WorkItem["team"], WorkItem[]> {
+  return items.reduce(
+    (acc, item) => {
+      acc[item.team].push(item);
+      return acc;
+    },
+    { core: [], growth: [], platform: [] } as Record<WorkItem["team"], WorkItem[]>
+  );
+}
+
+function average(values: number[]): number {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function healthFromRisk(avgRisk: number): TeamSummary["health"] {
+  if (avgRisk <= HEALTH_LIMITS.green) return "green";
+  if (avgRisk <= HEALTH_LIMITS.yellow) return "yellow";
+  return "red";
+}
+
+function summarizeTeam(team: WorkItem["team"], items: WorkItem[]): TeamSummary {
+  const risks = items.map(toRiskScore);
+  const avgRisk = average(risks);
+
+  return {
+    team,
+    total: items.length,
+    running: items.filter((item) => item.stage === "running").length,
+    blocked: items.filter((item) => item.stage === "blocked").length,
+    done: items.filter((item) => item.stage === "done").length,
+    avgRisk: Number(avgRisk.toFixed(3)),
+    health: healthFromRisk(avgRisk),
+  };
+}
+
+export function buildTeamDashboard(items: WorkItem[]): TeamSummary[] {
+  const grouped = groupByTeam(items);
+
+  const summaries = (Object.keys(grouped) as WorkItem["team"][]).map((team) =>
+    summarizeTeam(team, grouped[team])
+  );
+
+  return summaries.sort((a, b) => b.avgRisk - a.avgRisk);
+}
+
+export function formatTeamSummary(summary: TeamSummary): string {
+  const parts = [
+    `team=${summary.team}`,
+    `health=${summary.health}`,
+    `total=${summary.total}`,
+    `running=${summary.running}`,
+    `blocked=${summary.blocked}`,
+    `done=${summary.done}`,
+    `avgRisk=${summary.avgRisk.toFixed(2)}`,
+  ];
+
+  return parts.join(" | ");
+}
+
+export function formatDashboard(rows: TeamSummary[]): string[] {
+  return rows.map(formatTeamSummary);
+}
+```
+
+---
+
+<!-- .slide: data-auto-animate class="ts-walkthrough" -->
+## TypeScript Walkthrough [2/3]
+```ts [33-44]
+type Stage = "queued" | "running" | "blocked" | "done";
+
+type WorkItem = {
+  id: string;
+  title: string;
+  team: "core" | "growth" | "platform";
+  owner: string;
+  stage: Stage;
+  effort: number;
+  risk: number;
+  updatedAt: string;
+};
+
+type TeamSummary = {
+  team: WorkItem["team"];
+  total: number;
+  running: number;
+  blocked: number;
+  done: number;
+  avgRisk: number;
+  health: "green" | "yellow" | "red";
+};
+
+const HEALTH_LIMITS = {
+  green: 0.28,
+  yellow: 0.56,
+};
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function toRiskScore(item: WorkItem): number {
+  const stageWeight: Record<Stage, number> = {
+    queued: 0.2,
+    running: 0.4,
+    blocked: 0.9,
+    done: 0.1,
+  };
+
+  const effortFactor = clamp(item.effort / 13, 0, 1);
+  const base = 0.65 * item.risk + 0.35 * effortFactor;
+  return clamp(base * stageWeight[item.stage], 0, 1);
+}
+
+function groupByTeam(items: WorkItem[]): Record<WorkItem["team"], WorkItem[]> {
+  return items.reduce(
+    (acc, item) => {
+      acc[item.team].push(item);
+      return acc;
+    },
+    { core: [], growth: [], platform: [] } as Record<WorkItem["team"], WorkItem[]>
+  );
+}
+
+function average(values: number[]): number {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function healthFromRisk(avgRisk: number): TeamSummary["health"] {
+  if (avgRisk <= HEALTH_LIMITS.green) return "green";
+  if (avgRisk <= HEALTH_LIMITS.yellow) return "yellow";
+  return "red";
+}
+
+function summarizeTeam(team: WorkItem["team"], items: WorkItem[]): TeamSummary {
+  const risks = items.map(toRiskScore);
+  const avgRisk = average(risks);
+
+  return {
+    team,
+    total: items.length,
+    running: items.filter((item) => item.stage === "running").length,
+    blocked: items.filter((item) => item.stage === "blocked").length,
+    done: items.filter((item) => item.stage === "done").length,
+    avgRisk: Number(avgRisk.toFixed(3)),
+    health: healthFromRisk(avgRisk),
+  };
+}
+
+export function buildTeamDashboard(items: WorkItem[]): TeamSummary[] {
+  const grouped = groupByTeam(items);
+
+  const summaries = (Object.keys(grouped) as WorkItem["team"][]).map((team) =>
+    summarizeTeam(team, grouped[team])
+  );
+
+  return summaries.sort((a, b) => b.avgRisk - a.avgRisk);
+}
+
+export function formatTeamSummary(summary: TeamSummary): string {
+  const parts = [
+    `team=${summary.team}`,
+    `health=${summary.health}`,
+    `total=${summary.total}`,
+    `running=${summary.running}`,
+    `blocked=${summary.blocked}`,
+    `done=${summary.done}`,
+    `avgRisk=${summary.avgRisk.toFixed(2)}`,
+  ];
+
+  return parts.join(" | ");
+}
+
+export function formatDashboard(rows: TeamSummary[]): string[] {
+  return rows.map(formatTeamSummary);
+}
+```
+
+---
+
+<!-- .slide: data-auto-animate class="ts-walkthrough" -->
+## TypeScript Walkthrough [3/3]
+```ts [92-104]
+type Stage = "queued" | "running" | "blocked" | "done";
+
+type WorkItem = {
+  id: string;
+  title: string;
+  team: "core" | "growth" | "platform";
+  owner: string;
+  stage: Stage;
+  effort: number;
+  risk: number;
+  updatedAt: string;
+};
+
+type TeamSummary = {
+  team: WorkItem["team"];
+  total: number;
+  running: number;
+  blocked: number;
+  done: number;
+  avgRisk: number;
+  health: "green" | "yellow" | "red";
+};
+
+const HEALTH_LIMITS = {
+  green: 0.28,
+  yellow: 0.56,
+};
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function toRiskScore(item: WorkItem): number {
+  const stageWeight: Record<Stage, number> = {
+    queued: 0.2,
+    running: 0.4,
+    blocked: 0.9,
+    done: 0.1,
+  };
+
+  const effortFactor = clamp(item.effort / 13, 0, 1);
+  const base = 0.65 * item.risk + 0.35 * effortFactor;
+  return clamp(base * stageWeight[item.stage], 0, 1);
+}
+
+function groupByTeam(items: WorkItem[]): Record<WorkItem["team"], WorkItem[]> {
+  return items.reduce(
+    (acc, item) => {
+      acc[item.team].push(item);
+      return acc;
+    },
+    { core: [], growth: [], platform: [] } as Record<WorkItem["team"], WorkItem[]>
+  );
+}
+
+function average(values: number[]): number {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function healthFromRisk(avgRisk: number): TeamSummary["health"] {
+  if (avgRisk <= HEALTH_LIMITS.green) return "green";
+  if (avgRisk <= HEALTH_LIMITS.yellow) return "yellow";
+  return "red";
+}
+
+function summarizeTeam(team: WorkItem["team"], items: WorkItem[]): TeamSummary {
+  const risks = items.map(toRiskScore);
+  const avgRisk = average(risks);
+
+  return {
+    team,
+    total: items.length,
+    running: items.filter((item) => item.stage === "running").length,
+    blocked: items.filter((item) => item.stage === "blocked").length,
+    done: items.filter((item) => item.stage === "done").length,
+    avgRisk: Number(avgRisk.toFixed(3)),
+    health: healthFromRisk(avgRisk),
+  };
+}
+
+export function buildTeamDashboard(items: WorkItem[]): TeamSummary[] {
+  const grouped = groupByTeam(items);
+
+  const summaries = (Object.keys(grouped) as WorkItem["team"][]).map((team) =>
+    summarizeTeam(team, grouped[team])
+  );
+
+  return summaries.sort((a, b) => b.avgRisk - a.avgRisk);
+}
+
+export function formatTeamSummary(summary: TeamSummary): string {
+  const parts = [
+    `team=${summary.team}`,
+    `health=${summary.health}`,
+    `total=${summary.total}`,
+    `running=${summary.running}`,
+    `blocked=${summary.blocked}`,
+    `done=${summary.done}`,
+    `avgRisk=${summary.avgRisk.toFixed(2)}`,
+  ];
+
+  return parts.join(" | ");
+}
+
+export function formatDashboard(rows: TeamSummary[]): string[] {
+  return rows.map(formatTeamSummary);
+}
+```
+
 ---
 
 ## Risks and Mitigations

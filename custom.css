@@ -6,6 +6,7 @@
   --slide-pad-top: 5.2rem;
   --slide-pad-left: 4rem;
   --slide-pad-right: 0.75rem;
+  --walkthrough-code-height: min(54vh, calc(100vh - 17rem));
 }
 
 .reveal {
@@ -224,8 +225,8 @@
 
 .reveal .slides section.code-walkthrough pre code {
   display: block;
-  height: min(80vh, calc(100vh - 11.5rem));
-  max-height: min(80vh, calc(100vh - 11.5rem));
+  height: var(--walkthrough-code-height);
+  max-height: var(--walkthrough-code-height);
   overflow: auto;
   box-sizing: border-box;
   padding-bottom: 0.9em;
@@ -235,6 +236,13 @@
   scrollbar-color: rgba(143, 152, 171, 0.55) rgba(6, 8, 12, 0.35);
   font-size: 0.98em;
   line-height: 1.34;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --slide-pad-top: 3.2rem;
+    --walkthrough-code-height: min(46vh, calc(100vh - 11rem));
+  }
 }
 
 .reveal .slides section.code-walkthrough pre code::-webkit-scrollbar {

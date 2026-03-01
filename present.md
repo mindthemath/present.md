@@ -1,9 +1,9 @@
-# Product Strategy 2026
+# Single Line Text
 Clear priorities, measurable outcomes, and faster iteration.
 
 ---
 
-## Agenda
+## Numbered List
 1. Context and goals
 2. Audience and use cases
 3. Product capabilities
@@ -12,7 +12,7 @@ Clear priorities, measurable outcomes, and faster iteration.
 
 ---
 
-## Context
+## Text with Quote Block
 Our current workflow is functional but fragmented.
 
 > Teams are shipping features, but shared visibility and consistency are lagging behind delivery speed.
@@ -21,7 +21,7 @@ Key objective: reduce coordination overhead while increasing release confidence.
 
 ---
 
-## Target Users
+## Centered Data Table
 | User Type | Primary Need | Success Signal |
 | --- | --- | --- |
 | PM | Track progress clearly | Fewer status meetings |
@@ -31,7 +31,7 @@ Key objective: reduce coordination overhead while increasing release confidence.
 
 ---
 
-## Capability Map
+## Bullet List
 - Planning: scoped milestones and ownership
 - Build: reusable patterns and templates
 - Validate: automated checks and quality gates
@@ -40,7 +40,7 @@ Key objective: reduce coordination overhead while increasing release confidence.
 
 ---
 
-## Example Payload
+## JSON Code Block
 ```json
 {
   "project": "onboarding-revamp",
@@ -56,7 +56,7 @@ Key objective: reduce coordination overhead while increasing release confidence.
 
 ---
 
-## API Request
+## Two Code Fences (Bash + Text)
 ```bash
 curl -X POST https://api.example.com/v1/projects \
   -H "Authorization: Bearer <token>" \
@@ -71,7 +71,7 @@ Location: /v1/projects/onboarding-revamp
 
 ---
 
-## Python Validation Script
+## Python Code Block with Basement Slides
 ```python
 from typing import Any
 
@@ -93,7 +93,7 @@ def validate_payload(payload: dict[str, Any]) -> list[str]:
 
 --
 
-## Python Validation Script: Enrichment
+## Basement Slide: Python Code Block
 ```python
 from dataclasses import dataclass
 from typing import Any
@@ -116,7 +116,7 @@ def summarize(payload: dict[str, Any]) -> ValidationResult:
 
 ---
 
-## UI Logic Snippet
+## TypeScript Code Block (Short Snippet)
 ```ts
 type Status = "planned" | "in_progress" | "blocked" | "done";
 
@@ -136,7 +136,7 @@ export function badgeColor(status: Status): string {
 ---
 
 <!-- .slide: data-auto-animate class="code-walkthrough" -->
-## TypeScript Walkthrough [1/3]
+## Code Walkthrough: Full Context [1/3]
 ```ts [1-200]
 type Stage = "queued" | "running" | "blocked" | "done";
 
@@ -251,7 +251,7 @@ export function formatDashboard(rows: TeamSummary[]): string[] {
 ---
 
 <!-- .slide: data-auto-animate class="code-walkthrough" -->
-## TypeScript Walkthrough [2/3]
+## Code Walkthrough: Mid-File Focus [2/3]
 ```ts [33-44]
 type Stage = "queued" | "running" | "blocked" | "done";
 
@@ -366,7 +366,7 @@ export function formatDashboard(rows: TeamSummary[]): string[] {
 ---
 
 <!-- .slide: data-auto-animate class="code-walkthrough" -->
-## TypeScript Walkthrough [3/3]
+## Code Walkthrough: Lower-File Focus [3/3]
 ```ts [92-104]
 type Stage = "queued" | "running" | "blocked" | "done";
 
@@ -481,7 +481,7 @@ export function formatDashboard(rows: TeamSummary[]): string[] {
 ---
 
 <!-- .slide: data-auto-animate class="code-walkthrough" -->
-## Rust Walkthrough [1/3]
+## Rust Walkthrough: Full Context [1/3]
 ```rust [1-50]
 use std::collections::HashMap;
 
@@ -538,7 +538,7 @@ fn format_summary(team: &str, score: f32) -> String {
 ---
 
 <!-- .slide: data-auto-animate class="code-walkthrough" -->
-## Rust Walkthrough [2/3]
+## Rust Walkthrough: Multi-Range Focus [2/3]
 ```rust [19-32,48-50]
 use std::collections::HashMap;
 
@@ -595,7 +595,7 @@ fn format_summary(team: &str, score: f32) -> String {
 ---
 
 <!-- .slide: data-auto-animate class="code-walkthrough" -->
-## Rust Walkthrough [3/3]
+## Rust Walkthrough: Lower-File Focus [3/3]
 ```rust [34-45,48-50]
 use std::collections::HashMap;
 
@@ -652,17 +652,7 @@ fn format_summary(team: &str, score: f32) -> String {
 ---
 
 <!-- .slide: class="table-only-slide" -->
-## Table Centering Check
-| Metric | Target | Current |
-| --- | --- | --- |
-| P95 latency | < 250ms | 312ms |
-| Error rate | < 0.10% | 0.18% |
-| Availability | >= 99.90% | 99.82% |
-
----
-
-<!-- .slide: class="table-only-slide" -->
-## Risks and Mitigations
+## Standalone Table (Centered) with Basement Slides
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
 | Scope creep | Delays | Strict milestone definitions |
@@ -672,7 +662,7 @@ fn format_summary(team: &str, score: f32) -> String {
 
 --
 
-## Risk Drilldown: Delivery
+## Basement Slide: Bullet List
 - Leading signal: milestone spillover week-over-week
 - Trigger threshold: >20% of tasks pushed from current sprint
 - Containment:
@@ -682,7 +672,7 @@ fn format_summary(team: &str, score: f32) -> String {
 
 --
 
-## Risk Drilldown: Reliability
+## Mixed Content: Text Fence + List + Table
 ```text
 SLO Target: 99.9%
 Error Budget (30d): 43m 49s
@@ -701,15 +691,6 @@ Status: At risk (mitigation active)
 
 ---
 
-## Rollout Timeline
-- Week 1: architecture + success criteria
-- Week 2: core APIs + internal alpha
-- Week 3: UI polish + analytics instrumentation
-- Week 4: pilot launch with feedback loop
-
----
-
-## Next Actions
-1. Confirm scope for milestone one.
-2. Lock KPI definitions with analytics.
-3. Start pilot implementation with two teams.
+## End of Demonstration
+built with reveal.js
+<p class="byline">by mathematicalmichael</p>

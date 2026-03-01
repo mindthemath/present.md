@@ -435,3 +435,7 @@
   font-size: 0.9rem;
   letter-spacing: 0.02em;
 }
+
+.reveal .slides section .byline {
+  margin-top: 3rem !important;
+}

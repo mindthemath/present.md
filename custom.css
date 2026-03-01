@@ -23,6 +23,17 @@
   text-align: left;
 }
 
+.reveal .slides section.stack {
+  padding: 0 !important;
+}
+
+.reveal .slides section.stack > section {
+  box-sizing: border-box;
+  padding-top: 4.6rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
 .reveal .slides {
   top: 0 !important;
   left: 0 !important;

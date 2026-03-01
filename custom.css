@@ -280,7 +280,7 @@
 
 #deck-header-text {
   display: block;
-  margin: 0.28rem 0.55rem 0;
+  margin: 0.55rem 0.55rem 0;
   padding: 0.34rem 0.58rem;
   border: 1px solid var(--line);
   background: rgba(12, 15, 20, 0.92);

@@ -152,10 +152,25 @@
       }
     }
 
+    function currentPositionLabel() {
+      const { h, v } = deck.getIndices();
+      const horizontalSlides = deck.getHorizontalSlides();
+      const currentHorizontal = horizontalSlides[h];
+      const verticalCount = currentHorizontal
+        ? currentHorizontal.querySelectorAll(":scope > section").length
+        : 0;
+
+      if (verticalCount > 0) {
+        return `${h + 1}.${v + 1}`;
+      }
+
+      return `${h + 1}`;
+    }
+
       function updateChrome() {
         decorateCodeBlocks();
         headerText.textContent = slideHeading(deck.getCurrentSlide());
-        const current = deck.getIndices().h + 1;
+        const current = currentPositionLabel();
         const total = deck.getHorizontalSlides().length;
         counter.textContent = `${current} / ${total} | present.md`;
         stabilizeChromeForZoom();

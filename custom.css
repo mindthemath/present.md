@@ -173,16 +173,16 @@
   border-bottom: 1px solid rgba(95, 107, 132, 0.45) !important;
 }
 
-.reveal .slides section.ts-walkthrough pre {
-  margin-left: auto !important;
+.reveal .slides section.code-walkthrough pre {
+  margin-left: 0 !important;
   margin-right: auto !important;
-  width: 94%;
+  width: 100%;
   height: min(80vh, calc(100vh - 10rem));
   max-height: min(80vh, calc(100vh - 10rem));
   overflow: hidden;
 }
 
-.reveal .slides section.ts-walkthrough pre code {
+.reveal .slides section.code-walkthrough pre code {
   display: block;
   min-height: min(80vh, calc(100vh - 10rem));
   max-height: min(80vh, calc(100vh - 10rem));
@@ -191,48 +191,42 @@
   scrollbar-color: rgba(143, 152, 171, 0.55) rgba(6, 8, 12, 0.35);
 }
 
-.reveal .slides section.ts-walkthrough pre code::-webkit-scrollbar {
+.reveal .slides section.code-walkthrough pre code::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
-.reveal .slides section.ts-walkthrough pre code::-webkit-scrollbar-track {
+.reveal .slides section.code-walkthrough pre code::-webkit-scrollbar-track {
   background: rgba(6, 8, 12, 0.35);
   border-radius: 999px;
 }
 
-.reveal .slides section.ts-walkthrough pre code::-webkit-scrollbar-thumb {
+.reveal .slides section.code-walkthrough pre code::-webkit-scrollbar-thumb {
   background: rgba(143, 152, 171, 0.55);
   border-radius: 999px;
   border: 2px solid rgba(6, 8, 12, 0.35);
 }
 
-.reveal .slides section.ts-walkthrough pre code::-webkit-scrollbar-thumb:hover {
+.reveal .slides section.code-walkthrough pre code::-webkit-scrollbar-thumb:hover {
   background: rgba(184, 194, 214, 0.7);
 }
 
-.reveal .slides section.ts-walkthrough-2 pre code.has-highlights .hljs-ln-line,
-.reveal .slides section.ts-walkthrough-2 pre code.has-highlights > span,
-.reveal .slides section.ts-walkthrough-3 pre code.has-highlights .hljs-ln-line,
-.reveal .slides section.ts-walkthrough-3 pre code.has-highlights > span {
+.reveal .slides section.code-walkthrough pre code.has-highlights .hljs-ln-line,
+.reveal .slides section.code-walkthrough pre code.has-highlights > span {
   opacity: 0.58;
   transition: opacity 520ms ease;
 }
 
-.reveal .slides section.ts-walkthrough-2 pre code.has-highlights .hljs-ln-line.highlight-line,
-.reveal .slides section.ts-walkthrough-2 pre code.has-highlights > span.highlight-line,
-.reveal .slides section.ts-walkthrough-2 pre code.has-highlights .highlight-line,
-.reveal .slides section.ts-walkthrough-2 pre code.has-highlights .highlight-line *,
-.reveal .slides section.ts-walkthrough-3 pre code.has-highlights .hljs-ln-line.highlight-line,
-.reveal .slides section.ts-walkthrough-3 pre code.has-highlights > span.highlight-line,
-.reveal .slides section.ts-walkthrough-3 pre code.has-highlights .highlight-line,
-.reveal .slides section.ts-walkthrough-3 pre code.has-highlights .highlight-line * {
+.reveal .slides section.code-walkthrough pre code.has-highlights .hljs-ln-line.highlight-line,
+.reveal .slides section.code-walkthrough pre code.has-highlights > span.highlight-line,
+.reveal .slides section.code-walkthrough pre code.has-highlights .highlight-line,
+.reveal .slides section.code-walkthrough pre code.has-highlights .highlight-line * {
   opacity: 1;
   background: transparent !important;
 }
 
-.reveal .slides section.ts-walkthrough.walkthrough-enter pre code.has-highlights .hljs-ln-line,
-.reveal .slides section.ts-walkthrough.walkthrough-enter pre code.has-highlights > span {
+.reveal .slides section.code-walkthrough.walkthrough-enter pre code.has-highlights .hljs-ln-line,
+.reveal .slides section.code-walkthrough.walkthrough-enter pre code.has-highlights > span {
   opacity: 1;
 }
 
@@ -280,7 +274,7 @@
   display: block;
   margin-bottom: 0.12em;
   color: var(--muted);
-  font-size: 0.8em;
+  font-size: 0.98em;
   letter-spacing: 0.01em;
 }
 
@@ -289,7 +283,7 @@
   display: block;
   margin-top: 0.06em;
   color: var(--muted);
-  font-size: 0.8em;
+  font-size: 0.98em;
   letter-spacing: 0.01em;
 }
 

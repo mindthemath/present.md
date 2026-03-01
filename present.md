@@ -91,6 +91,29 @@ def validate_payload(payload: dict[str, Any]) -> list[str]:
     return errors
 ```
 
+--
+
+## Python Validation Script: Enrichment
+```python
+from dataclasses import dataclass
+from typing import Any
+
+
+@dataclass
+class ValidationResult:
+    ok: bool
+    errors: list[str]
+    score: float
+
+
+def summarize(payload: dict[str, Any]) -> ValidationResult:
+    errors = validate_payload(payload)
+    activation = float(payload.get("metrics", {}).get("activation_rate", 0))
+    penalty = 0.12 * len(errors)
+    score = max(0.0, min(1.0, activation - penalty))
+    return ValidationResult(ok=not errors, errors=errors, score=score)
+```
+
 ---
 
 ## UI Logic Snippet
@@ -118,6 +141,29 @@ export function badgeColor(status: Status): string {
 | Data quality gaps | Misleading insights | Validation at ingest |
 | Adoption friction | Low usage | Guided onboarding and docs |
 | Performance regressions | Poor UX | Budgets + continuous profiling |
+
+--
+
+## Risk Drilldown: Delivery
+- Leading signal: milestone spillover week-over-week
+- Trigger threshold: >20% of tasks pushed from current sprint
+- Containment:
+  - freeze net-new scope for one cycle
+  - split critical/non-critical paths
+  - add checkpoint at 50% completion
+
+--
+
+## Risk Drilldown: Reliability
+```text
+SLO Target: 99.9%
+Error Budget (30d): 43m 49s
+Current Burn Rate: 1.7x
+Status: At risk (mitigation active)
+```
+- Rollback criteria pre-defined per release
+- Canary window extended from 15m to 45m
+- On-call handoff checklist required before deploy
 
 ---
 

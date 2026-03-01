@@ -18,6 +18,8 @@
       <div class="slides">
         <section
           data-markdown="present.md"
+          data-separator="^\r?\n---\r?\n$"
+          data-separator-vertical="^\r?\n--\r?\n$"
         ></section>
       </div>
     </div>
@@ -31,7 +33,7 @@
       const deck = new Reveal({
         hash: true,
         hashOneBasedIndex: true,
-        navigationMode: "linear",
+        navigationMode: "default",
         center: false,
         controls: false,
         progress: false,
@@ -153,8 +155,8 @@
       function updateChrome() {
         decorateCodeBlocks();
         headerText.textContent = slideHeading(deck.getCurrentSlide());
-        const current = deck.getSlidePastCount(deck.getCurrentSlide()) + 1;
-        const total = deck.getTotalSlides();
+        const current = deck.getIndices().h + 1;
+        const total = deck.getHorizontalSlides().length;
         counter.textContent = `${current} / ${total} | present.md`;
         stabilizeChromeForZoom();
         syncHashNow();

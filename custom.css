@@ -3,6 +3,7 @@
   --fg: #d8dee9;
   --muted: #8f98ab;
   --line: #5f6b84;
+  --slide-pad-top: 5.2rem;
   --slide-pad-left: 4rem;
   --slide-pad-right: 0.75rem;
 }
@@ -19,7 +20,7 @@
 
 .reveal .slides section {
   box-sizing: border-box;
-  padding-top: 4.6rem;
+  padding-top: var(--slide-pad-top);
   padding-left: var(--slide-pad-left);
   padding-right: var(--slide-pad-right);
   text-align: left;
@@ -31,7 +32,7 @@
 
 .reveal .slides section.stack > section {
   box-sizing: border-box;
-  padding-top: 4.6rem;
+  padding-top: var(--slide-pad-top);
   padding-left: var(--slide-pad-left);
   padding-right: var(--slide-pad-right);
 }
@@ -232,6 +233,8 @@
   scrollbar-gutter: stable both-edges;
   scrollbar-width: thin;
   scrollbar-color: rgba(143, 152, 171, 0.55) rgba(6, 8, 12, 0.35);
+  font-size: 0.98em;
+  line-height: 1.34;
 }
 
 .reveal .slides section.code-walkthrough pre code::-webkit-scrollbar {
@@ -281,6 +284,8 @@
 
 .reveal table.hljs-ln td {
   padding: 0 !important;
+  font-size: 0.98em !important;
+  line-height: 1.34 !important;
 }
 
 .reveal table.hljs-ln td.hljs-ln-numbers {

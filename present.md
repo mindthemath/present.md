@@ -135,7 +135,7 @@ export function badgeColor(status: Status): string {
 
 ---
 
-<!-- .slide: data-auto-animate class="code-walkthrough" -->
+<!-- .slide: data-auto-animate class="code-walkthrough" data-walkthrough-group="ts" -->
 ## Code Walkthrough: Full Context [1/3]
 ```ts [1-200]
 type Stage = "queued" | "running" | "blocked" | "done";
@@ -250,7 +250,7 @@ export function formatDashboard(rows: TeamSummary[]): string[] {
 
 ---
 
-<!-- .slide: data-auto-animate class="code-walkthrough" -->
+<!-- .slide: data-auto-animate class="code-walkthrough" data-walkthrough-group="ts" -->
 ## Code Walkthrough: Mid-File Focus [2/3]
 ```ts [33-44]
 type Stage = "queued" | "running" | "blocked" | "done";
@@ -365,7 +365,7 @@ export function formatDashboard(rows: TeamSummary[]): string[] {
 
 ---
 
-<!-- .slide: data-auto-animate class="code-walkthrough" -->
+<!-- .slide: data-auto-animate class="code-walkthrough" data-walkthrough-group="ts" -->
 ## Code Walkthrough: Lower-File Focus [3/3]
 ```ts [92-104]
 type Stage = "queued" | "running" | "blocked" | "done";
@@ -480,7 +480,7 @@ export function formatDashboard(rows: TeamSummary[]): string[] {
 
 ---
 
-<!-- .slide: data-auto-animate class="code-walkthrough" -->
+<!-- .slide: data-auto-animate class="code-walkthrough" data-walkthrough-group="rust" -->
 ## Rust Walkthrough: Full Context [1/3]
 ```rust [1-50]
 use std::collections::HashMap;
@@ -537,7 +537,7 @@ fn format_summary(team: &str, score: f32) -> String {
 
 ---
 
-<!-- .slide: data-auto-animate class="code-walkthrough" -->
+<!-- .slide: data-auto-animate class="code-walkthrough" data-walkthrough-group="rust" -->
 ## Rust Walkthrough: Multi-Range Focus [2/3]
 ```rust [19-32,48-50]
 use std::collections::HashMap;
@@ -594,7 +594,7 @@ fn format_summary(team: &str, score: f32) -> String {
 
 ---
 
-<!-- .slide: data-auto-animate class="code-walkthrough" -->
+<!-- .slide: data-auto-animate class="code-walkthrough" data-walkthrough-group="rust" -->
 ## Rust Walkthrough: Lower-File Focus [3/3]
 ```rust [34-45,48-50]
 use std::collections::HashMap;

@@ -154,6 +154,8 @@
 
     function walkthroughGroupKey(slide) {
       if (!slide) return "default";
+      const explicitGroup = (slide.dataset.walkthroughGroup || "").trim().toLowerCase();
+      if (explicitGroup) return explicitGroup;
       const heading = slide.querySelector(
         ":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6"
       );

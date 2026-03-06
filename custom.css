@@ -4,9 +4,14 @@
   --muted: #8f98ab;
   --line: #5f6b84;
   --slide-pad-top: 5.2rem;
-  --slide-pad-left: 4rem;
-  --slide-pad-right: 0.75rem;
+  --slide-pad-left: clamp(1rem, 3.4vw, 4rem);
+  --slide-pad-right: clamp(0.75rem, 2.2vw, 1.25rem);
   --walkthrough-code-height: min(54vh, calc(100vh - 17rem));
+}
+
+html,
+body {
+  overflow-x: hidden;
 }
 
 .reveal {
@@ -241,7 +246,23 @@
 @media (max-width: 768px) {
   :root {
     --slide-pad-top: 3.2rem;
+    --slide-pad-left: 1rem;
+    --slide-pad-right: 1rem;
     --walkthrough-code-height: min(46vh, calc(100vh - 11rem));
+  }
+
+  .reveal .slides section > table:not(.hljs-ln),
+  .reveal .slides section > figure,
+  .reveal .slides section.table-only-slide > table:not(.hljs-ln),
+  .reveal .slides section.table-only-slide > figure {
+    transform: none !important;
+  }
+
+  .reveal .slides section p,
+  .reveal .slides section li,
+  .reveal .slides section th,
+  .reveal .slides section td {
+    overflow-wrap: anywhere;
   }
 }
 

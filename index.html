@@ -34,12 +34,10 @@
         hash: true,
         hashOneBasedIndex: true,
         navigationMode: "default",
+        disableLayout: true,
         center: false,
         controls: false,
         progress: false,
-        minScale: 1,
-        maxScale: 1,
-        margin: 0,
         transition: "none",
         plugins: [RevealMarkdown, RevealHighlight],
       });
@@ -47,11 +45,10 @@
     const header = document.getElementById("deck-header");
     const headerText = document.getElementById("deck-header-text");
     const counter = document.getElementById("deck-counter");
-    const baseDpr = window.devicePixelRatio || 1;
-    const counterBaseOffsetRem = { left: 1.1, bottom: 0.8 };
-    let lastStableIndices = { h: 0, v: 0, f: 0 };
-    let viewportRecoveryPending = false;
-    let viewportRecoveryFrame = 0;
+    const rootStyle = document.documentElement.style;
+    let deckReady = false;
+    let viewportSyncFrame = 0;
+    let stableHorizontalSlideCount = 1;
     let lastWalkthroughState = {
       active: false,
       group: "",
@@ -74,34 +71,12 @@
       return `${hashes} ${heading.textContent.trim()}`;
     }
 
-    function zoomFactor() {
-      const dprZoom = (window.devicePixelRatio || baseDpr) / baseDpr;
-      const viewportZoom = window.visualViewport?.scale || 1;
-      const zoom = dprZoom * viewportZoom;
-      return Number.isFinite(zoom) && zoom > 0 ? zoom : 1;
-    }
+    function syncChromeLayout() {
+      const headerHeight = Math.max(42, Math.ceil(header.getBoundingClientRect().height));
+      const counterHeight = Math.max(20, Math.ceil(counter.getBoundingClientRect().height));
 
-    function currentIndices() {
-      const { h = 0, v = 0, f = 0 } = deck.getIndices();
-      return { h, v, f };
-    }
-
-    function sameIndices(left, right) {
-      return left.h === right.h && left.v === right.v && left.f === right.f;
-    }
-
-    function stabilizeChromeForZoom() {
-      const zoom = zoomFactor();
-      const inverse = 1 / zoom;
-
-      header.style.transformOrigin = "top left";
-      header.style.transform = `scale(${inverse})`;
-      header.style.width = `${zoom * 100}%`;
-
-      counter.style.transformOrigin = "bottom left";
-      counter.style.transform = `scale(${inverse})`;
-      counter.style.left = `${counterBaseOffsetRem.left * inverse}rem`;
-      counter.style.bottom = `${counterBaseOffsetRem.bottom * inverse}rem`;
+      rootStyle.setProperty("--deck-header-offset", `${headerHeight + 16}px`);
+      rootStyle.setProperty("--deck-footer-offset", `${counterHeight + 16}px`);
 
       // Reveal uses slide transforms, not page scrolling. Reset browser zoom drift.
       if (window.scrollX !== 0 || window.scrollY !== 0) {
@@ -109,18 +84,13 @@
       }
     }
 
-    function recoverSlideAfterViewportChange() {
-      const target = { ...lastStableIndices };
-      viewportRecoveryPending = true;
-      cancelAnimationFrame(viewportRecoveryFrame);
-      viewportRecoveryFrame = requestAnimationFrame(() => {
-        const current = currentIndices();
-        if (!sameIndices(current, target)) {
-          deck.slide(target.h, target.v, target.f);
-        } else {
-          syncHashNow();
+    function handleViewportChange() {
+      cancelAnimationFrame(viewportSyncFrame);
+      viewportSyncFrame = requestAnimationFrame(() => {
+        syncChromeLayout();
+        if (deckReady) {
+          updateChrome();
         }
-        viewportRecoveryPending = false;
       });
     }
 
@@ -282,6 +252,7 @@
     }
 
     function syncHashNow() {
+      if (!deckReady) return;
       const { h, v, f } = deck.getIndices();
       const parts = [h + 1];
 
@@ -294,46 +265,51 @@
       }
     }
 
-    function currentPositionLabel() {
-      const { h, v } = deck.getIndices();
-      const horizontalSlides = deck.getHorizontalSlides();
-      const currentHorizontal = horizontalSlides[h];
+    function currentPositionLabel(indices, horizontalSlides) {
+      const { h, v } = indices;
+      const safeIndex = Math.min(Math.max(h, 0), Math.max(horizontalSlides.length - 1, 0));
+      const currentHorizontal = horizontalSlides[safeIndex];
       const verticalCount = currentHorizontal
         ? currentHorizontal.querySelectorAll(":scope > section").length
         : 0;
 
       if (verticalCount > 0) {
-        return `${h + 1}.${v + 1}`;
+        return `${safeIndex + 1}.${v + 1}`;
       }
 
-      return `${h + 1}`;
+      return `${safeIndex + 1}`;
     }
 
-      function updateChrome() {
-        configureWalkthroughAutoAnimateIds();
-        decorateCodeBlocks();
-        const indices = currentIndices();
-        headerText.textContent = slideHeading(deck.getCurrentSlide());
-        const current = currentPositionLabel();
-        const total = deck.getHorizontalSlides().length;
-        counter.textContent = `${current} / ${total} | present.md`;
-        if (!viewportRecoveryPending || sameIndices(indices, lastStableIndices)) {
-          lastStableIndices = indices;
-        }
-        stabilizeChromeForZoom();
-        syncHashNow();
-        runWalkthroughEffects();
+    function updateChrome() {
+      configureWalkthroughAutoAnimateIds();
+      decorateCodeBlocks();
+      const indices = deck.getIndices();
+      const horizontalSlides = deck.getHorizontalSlides();
+      if (horizontalSlides.length > 0) {
+        stableHorizontalSlideCount = horizontalSlides.length;
       }
+      headerText.textContent = slideHeading(deck.getCurrentSlide());
+      const current = currentPositionLabel(indices, horizontalSlides);
+      const total = Math.max(1, stableHorizontalSlideCount);
+      counter.textContent = `${current} / ${total} | present.md`;
+      syncChromeLayout();
+      syncHashNow();
+      runWalkthroughEffects();
+    }
 
-      deck.on("ready", updateChrome);
-      deck.on("slidechanged", updateChrome);
-      deck.on("fragmentshown", updateChrome);
-      deck.on("fragmenthidden", updateChrome);
-      window.addEventListener("resize", recoverSlideAfterViewportChange);
-      if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", recoverSlideAfterViewportChange);
-      }
-      deck.initialize();
+    deck.on("ready", () => {
+      deckReady = true;
+      stableHorizontalSlideCount = Math.max(1, deck.getHorizontalSlides().length);
+      updateChrome();
+    });
+    deck.on("slidechanged", updateChrome);
+    deck.on("fragmentshown", updateChrome);
+    deck.on("fragmenthidden", updateChrome);
+    window.addEventListener("resize", handleViewportChange);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleViewportChange);
+    }
+    deck.initialize();
     </script>
   </body>
 </html>

@@ -81,7 +81,7 @@ body {
   margin-top: 0 !important;
 }
 
-.reveal .slides section > :not(table):not(figure) {
+.reveal .slides section > :not(table):not(figure):not(pre) {
   margin-left: 0 !important;
   margin-right: 0 !important;
   max-width: min(72ch, 100%) !important;

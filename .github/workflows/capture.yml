@@ -2,6 +2,17 @@ name: Slide Deck Screenshots
 
 on:
   workflow_dispatch:
+    inputs:
+      zoom_level:
+        description: Zoom level for screenshot capture windows
+        required: false
+        default: '1'
+        type: choice
+        options:
+          - '0.5'
+          - '1'
+          - '1.5'
+          - '3'
 
 permissions:
   contents: write
@@ -34,6 +45,8 @@ jobs:
           bunx playwright install chromium
 
       - name: Start server and take screenshots
+        env:
+          SCREENSHOT_ZOOM_LEVEL: ${{ inputs.zoom_level || '1' }}
         run: |
           # Start static server in background
           bunx --bun serve . -p 1313 > /dev/null 2>&1 &
@@ -54,6 +67,11 @@ jobs:
           const { chromium } = require('playwright');
           const fs = require('fs');
           const path = require('path');
+          const zoomLevel = Number(process.env.SCREENSHOT_ZOOM_LEVEL || '1');
+
+          if (!Number.isFinite(zoomLevel) || zoomLevel <= 0) {
+            throw new Error(`Invalid SCREENSHOT_ZOOM_LEVEL: ${process.env.SCREENSHOT_ZOOM_LEVEL}`);
+          }
 
           // URLs to capture: [url, folderName] or [url, folderName, waitTimeMs]
           // Optional waitTimeMs: wait after load before screenshot (for animated slides)
@@ -109,18 +127,25 @@ jobs:
 
             if (waitTime > 0) {
               // Load once, wait for animation, then resize for each resolution
-              console.log(`Loading ${url} and waiting ${waitTime}ms for animation...`);
+              console.log(`Loading ${url} at ${zoomLevel}x zoom and waiting ${waitTime}ms for animation...`);
               const page = await browser.newPage();
               const [firstWidth, firstHeight, firstLabel] = resolutions[0];
               await page.setViewportSize({ width: firstWidth, height: firstHeight });
               await page.goto(fullUrl, { waitUntil: 'networkidle' });
               await page.waitForTimeout(500);
+              await page.evaluate((zoom) => {
+                document.documentElement.style.zoom = String(zoom);
+              }, zoomLevel);
+              await page.waitForTimeout(100);
               await page.waitForTimeout(waitTime);
               
               // Now take screenshots at all resolutions by resizing
               for (const [width, height, label] of resolutions) {
-                console.log(`Taking ${width}x${height} (${label}) for ${url}`);
+                console.log(`Taking ${width}x${height} (${label}) for ${url} at ${zoomLevel}x zoom`);
                 await page.setViewportSize({ width, height });
+                await page.evaluate((zoom) => {
+                  document.documentElement.style.zoom = String(zoom);
+                }, zoomLevel);
                 // Small delay to let layout adjust after resize
                 await page.waitForTimeout(100);
 
@@ -134,11 +159,15 @@ jobs:
             } else {
               // Reload for each resolution
               for (const [width, height, label] of resolutions) {
-                console.log(`Taking ${width}x${height} (${label}) for ${url}`);
+                console.log(`Taking ${width}x${height} (${label}) for ${url} at ${zoomLevel}x zoom`);
                 const page = await browser.newPage();
                 await page.setViewportSize({ width, height });
                 await page.goto(fullUrl, { waitUntil: 'networkidle' });
                 await page.waitForTimeout(500);
+                await page.evaluate((zoom) => {
+                  document.documentElement.style.zoom = String(zoom);
+                }, zoomLevel);
+                await page.waitForTimeout(100);
 
                 const filename = `${width}x${height}-${label}.png`;
                 const filepath = path.join(folder, filename);
@@ -179,6 +208,7 @@ jobs:
           (async () => {
             try {
               const allFolders = [];
+              console.log(`Using screenshot zoom level: ${zoomLevel}x`);
 
               for (const entry of urls) {
                 const [url, folderName, waitTime = 0] = entry;

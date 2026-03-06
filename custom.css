@@ -12,7 +12,7 @@
   --slide-pad-bottom: max(var(--slide-pad-bottom-base), var(--deck-footer-offset));
   --slide-pad-left: clamp(1rem, 3.4vw, 4rem);
   --slide-pad-right: clamp(0.75rem, 2.2vw, 1.25rem);
-  --walkthrough-code-height: min(54vh, calc(100vh - 17rem));
+  --walkthrough-code-height: min(66vh, calc(100vh - 12.5rem));
 }
 
 html,
@@ -272,7 +272,7 @@ body {
     --slide-pad-bottom-base: 2.5rem;
     --slide-pad-left: 1rem;
     --slide-pad-right: 1rem;
-    --walkthrough-code-height: min(46vh, calc(100vh - 11rem));
+    --walkthrough-code-height: min(56vh, calc(100vh - 8.5rem));
   }
 
   .reveal .slides section > table:not(.hljs-ln),

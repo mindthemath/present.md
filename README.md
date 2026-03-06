@@ -15,7 +15,7 @@ Reveal.js runtime assets are vendored in-repo for offline use.
 From this `reveal/` directory:
 
 ```bash
-bunx --bun serve .
+bunx --bun serve . -p 1313
 ```
 
 Then open the local URL printed by `serve` in your browser.

@@ -17,7 +17,8 @@
     <div class="reveal">
       <div class="slides">
         <section
-          data-markdown="present.md"
+          data-slides-markdown-root
+          data-markdown
           data-separator="^\r?\n---\r?\n$"
           data-separator-vertical="^\r?\n--\r?\n$"
         ></section>
@@ -29,287 +30,324 @@
     <script src="./vendor/reveal.js/dist/reveal.js"></script>
     <script src="./vendor/reveal.js/plugin/markdown/markdown.js"></script>
     <script src="./vendor/reveal.js/plugin/highlight/highlight.js"></script>
+    <script src="./vendor/reveal.js/plugin/math/math.js"></script>
     <script>
-      const deck = new Reveal({
-        hash: true,
-        hashOneBasedIndex: true,
-        navigationMode: "default",
-        disableLayout: true,
-        center: false,
-        controls: false,
-        progress: false,
-        transition: "none",
-        plugins: [RevealMarkdown, RevealHighlight],
-      });
-
-    const header = document.getElementById("deck-header");
-    const headerText = document.getElementById("deck-header-text");
-    const counter = document.getElementById("deck-counter");
-    const rootStyle = document.documentElement.style;
-    let deckReady = false;
-    let viewportSyncFrame = 0;
-    let stableHorizontalSlideCount = 1;
-    let lastWalkthroughState = {
-      active: false,
-      group: "",
-      hadHighlights: false,
-      targetScroll: 0,
-    };
-
-    function slideHeading(slide) {
-      if (!slide) return "";
-      const heading = slide.querySelector(
-        ":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6"
-      );
-      if (!heading) return "";
-
-      const level = Number.parseInt(heading.tagName.slice(1), 10);
-      const hashes = Number.isInteger(level) && level >= 1 && level <= 6
-        ? "#".repeat(level)
-        : "#";
-
-      return `${hashes} ${heading.textContent.trim()}`;
-    }
-
-    function syncChromeLayout() {
-      const headerHeight = Math.max(42, Math.ceil(header.getBoundingClientRect().height));
-      const counterHeight = Math.max(20, Math.ceil(counter.getBoundingClientRect().height));
-
-      rootStyle.setProperty("--deck-header-offset", `${headerHeight + 16}px`);
-      rootStyle.setProperty("--deck-footer-offset", `${counterHeight + 16}px`);
-
-      // Reveal uses slide transforms, not page scrolling. Reset browser zoom drift.
-      if (window.scrollX !== 0 || window.scrollY !== 0) {
-        window.scrollTo(0, 0);
-      }
-    }
-
-    function handleViewportChange() {
-      cancelAnimationFrame(viewportSyncFrame);
-      viewportSyncFrame = requestAnimationFrame(() => {
-        syncChromeLayout();
-        if (deckReady) {
-          updateChrome();
-        }
-      });
-    }
-
-    function normalizeLanguage(lang) {
-      const aliases = {
-        js: "javascript",
-        ts: "typescript",
-        sh: "bash",
-        yml: "yaml",
-        py: "python",
-        txt: "text",
+      const slidesMarkdown = document.querySelector("[data-slides-markdown-root]");
+      const header = document.getElementById("deck-header");
+      const headerText = document.getElementById("deck-header-text");
+      const counter = document.getElementById("deck-counter");
+      const rootStyle = document.documentElement.style;
+      let deck;
+      let deckReady = false;
+      let viewportSyncFrame = 0;
+      let stableHorizontalSlideCount = 1;
+      let lastWalkthroughState = {
+        active: false,
+        group: "",
+        hadHighlights: false,
+        targetScroll: 0,
       };
-      const lower = (lang || "").toLowerCase();
-      return aliases[lower] || lower;
-    }
 
-    function detectLanguage(code) {
-      const classes = Array.from(code.classList || []);
-      for (const name of classes) {
-        if (name.startsWith("language-")) {
-          return normalizeLanguage(name.slice(9));
+      function transformFencedMath(markdown) {
+        return markdown.replace(
+          /^```math[ \t]*\r?\n([\s\S]*?)\r?\n```[ \t]*$/gm,
+          (_match, block) => `$$\n${block.replace(/\s+$/, "")}\n$$`
+        );
+      }
+
+      async function loadSlidesMarkdown() {
+        const response = await fetch("./present.md", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Unable to load present.md (${response.status})`);
+        }
+
+        const template = document.createElement("script");
+        template.type = "text/template";
+        template.dataset.template = "";
+        template.textContent = transformFencedMath(await response.text());
+        slidesMarkdown.replaceChildren(template);
+      }
+
+      function slideHeading(slide) {
+        if (!slide) return "";
+        const heading = slide.querySelector(
+          ":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6"
+        );
+        if (!heading) return "";
+
+        const level = Number.parseInt(heading.tagName.slice(1), 10);
+        const hashes = Number.isInteger(level) && level >= 1 && level <= 6
+          ? "#".repeat(level)
+          : "#";
+
+        return `${hashes} ${heading.textContent.trim()}`;
+      }
+
+      function syncChromeLayout() {
+        const headerHeight = Math.max(42, Math.ceil(header.getBoundingClientRect().height));
+        const counterHeight = Math.max(20, Math.ceil(counter.getBoundingClientRect().height));
+
+        rootStyle.setProperty("--deck-header-offset", `${headerHeight + 16}px`);
+        rootStyle.setProperty("--deck-footer-offset", `${counterHeight + 16}px`);
+
+        // Reveal uses slide transforms, not page scrolling. Reset browser zoom drift.
+        if (window.scrollX !== 0 || window.scrollY !== 0) {
+          window.scrollTo(0, 0);
         }
       }
 
-      const common = new Set([
-        "javascript",
-        "typescript",
-        "bash",
-        "json",
-        "yaml",
-        "python",
-        "go",
-        "text",
-        "js",
-        "ts",
-        "sh",
-        "yml",
-        "py",
-        "txt",
-      ]);
-
-      for (const name of classes) {
-        if (common.has(name.toLowerCase())) {
-          return normalizeLanguage(name);
-        }
+      function handleViewportChange() {
+        cancelAnimationFrame(viewportSyncFrame);
+        viewportSyncFrame = requestAnimationFrame(() => {
+          syncChromeLayout();
+          if (deckReady) {
+            updateChrome();
+          }
+        });
       }
-      return "";
-    }
 
-    function decorateCodeBlocks() {
-      document.querySelectorAll(".reveal pre > code").forEach((code) => {
-        const pre = code.parentElement;
-        if (!pre || pre.dataset.rawDecorated === "1") return;
-        pre.dataset.lang = detectLanguage(code);
-        pre.dataset.rawDecorated = "1";
-        pre.classList.add("raw-fence");
-      });
-    }
+      function normalizeLanguage(lang) {
+        const aliases = {
+          js: "javascript",
+          ts: "typescript",
+          sh: "bash",
+          yml: "yaml",
+          py: "python",
+          txt: "text",
+        };
+        const lower = (lang || "").toLowerCase();
+        return aliases[lower] || lower;
+      }
 
-    function isCodeWalkthroughSlide(slide) {
-      return !!slide && slide.classList.contains("code-walkthrough");
-    }
+      function detectLanguage(code) {
+        const classes = Array.from(code.classList || []);
+        for (const name of classes) {
+          if (name.startsWith("language-")) {
+            return normalizeLanguage(name.slice(9));
+          }
+        }
 
-    function walkthroughGroupKey(slide) {
-      if (!slide) return "default";
-      const explicitGroup = (slide.dataset.walkthroughGroup || "").trim().toLowerCase();
-      if (explicitGroup) return explicitGroup;
-      const heading = slide.querySelector(
-        ":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6"
-      );
-      const raw = heading ? heading.textContent.trim() : "";
-      const base = raw.replace(/\s*\[\d+\/\d+\]\s*$/, "").trim().toLowerCase();
-      const slug = base.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-      return slug || "default";
-    }
+        const common = new Set([
+          "javascript",
+          "typescript",
+          "bash",
+          "json",
+          "yaml",
+          "python",
+          "go",
+          "text",
+          "js",
+          "ts",
+          "sh",
+          "yml",
+          "py",
+          "txt",
+        ]);
 
-    function configureWalkthroughAutoAnimateIds() {
-      document.querySelectorAll(".reveal .slides section.code-walkthrough").forEach((slide) => {
+        for (const name of classes) {
+          if (common.has(name.toLowerCase())) {
+            return normalizeLanguage(name);
+          }
+        }
+        return "";
+      }
+
+      function decorateCodeBlocks() {
+        document.querySelectorAll(".reveal pre > code").forEach((code) => {
+          const pre = code.parentElement;
+          if (!pre || pre.dataset.rawDecorated === "1") return;
+          pre.dataset.lang = detectLanguage(code);
+          pre.dataset.rawDecorated = "1";
+          pre.classList.add("raw-fence");
+        });
+      }
+
+      function isCodeWalkthroughSlide(slide) {
+        return !!slide && slide.classList.contains("code-walkthrough");
+      }
+
+      function walkthroughGroupKey(slide) {
+        if (!slide) return "default";
+        const explicitGroup = (slide.dataset.walkthroughGroup || "").trim().toLowerCase();
+        if (explicitGroup) return explicitGroup;
+        const heading = slide.querySelector(
+          ":scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6"
+        );
+        const raw = heading ? heading.textContent.trim() : "";
+        const base = raw.replace(/\s*\[\d+\/\d+\]\s*$/, "").trim().toLowerCase();
+        const slug = base.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+        return slug || "default";
+      }
+
+      function configureWalkthroughAutoAnimateIds() {
+        document.querySelectorAll(".reveal .slides section.code-walkthrough").forEach((slide) => {
+          const group = walkthroughGroupKey(slide);
+          slide.dataset.autoAnimateId = `code-walkthrough-${group}`;
+          const pre = slide.querySelector("pre");
+          const code = slide.querySelector("pre code");
+          if (pre) pre.dataset.id = `code-walkthrough-pre-${group}`;
+          if (code) code.dataset.id = `code-walkthrough-code-${group}`;
+        });
+      }
+
+      function animateScrollTo(element, target, durationMs) {
+        const start = element.scrollTop;
+        const delta = target - start;
+        if (Math.abs(delta) < 2) {
+          element.scrollTop = target;
+          return;
+        }
+
+        const startTs = performance.now();
+        const duration = Math.max(120, durationMs);
+
+        function frame(now) {
+          const elapsed = now - startTs;
+          const t = Math.min(1, elapsed / duration);
+          const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+          element.scrollTop = start + delta * eased;
+          if (t < 1) requestAnimationFrame(frame);
+        }
+
+        requestAnimationFrame(frame);
+      }
+
+      function runWalkthroughEffects() {
+        const slide = deck.getCurrentSlide();
+        if (!isCodeWalkthroughSlide(slide)) {
+          document
+            .querySelectorAll(".reveal .slides section.code-walkthrough.walkthrough-enter")
+            .forEach((node) => node.classList.remove("walkthrough-enter"));
+
+          lastWalkthroughState = {
+            active: false,
+            group: "",
+            hadHighlights: false,
+            targetScroll: 0,
+          };
+          return;
+        }
+
         const group = walkthroughGroupKey(slide);
-        slide.dataset.autoAnimateId = `code-walkthrough-${group}`;
-        const pre = slide.querySelector("pre");
         const code = slide.querySelector("pre code");
-        if (pre) pre.dataset.id = `code-walkthrough-pre-${group}`;
-        if (code) code.dataset.id = `code-walkthrough-code-${group}`;
-      });
-    }
+        if (!code) return;
 
-    function animateScrollTo(element, target, durationMs) {
-      const start = element.scrollTop;
-      const delta = target - start;
-      if (Math.abs(delta) < 2) {
-        element.scrollTop = target;
-        return;
-      }
+        const firstHighlight = code.querySelector(".highlight-line");
+        const hasHighlights = !!firstHighlight;
+        const targetScroll = hasHighlights
+          ? Math.max(0, firstHighlight.offsetTop - code.clientHeight * 0.2)
+          : 0;
+        const sameGroup = lastWalkthroughState.active && lastWalkthroughState.group === group;
+        const startScroll = sameGroup ? lastWalkthroughState.targetScroll : 0;
 
-      const startTs = performance.now();
-      const duration = Math.max(120, durationMs);
+        // Set initial position immediately to avoid one-frame focus flash.
+        code.scrollTop = startScroll;
 
-      function frame(now) {
-        const elapsed = now - startTs;
-        const t = Math.min(1, elapsed / duration);
-        const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-        element.scrollTop = start + delta * eased;
-        if (t < 1) requestAnimationFrame(frame);
-      }
+        const shouldFadeFromBright = hasHighlights && (!sameGroup || !lastWalkthroughState.hadHighlights);
+        if (shouldFadeFromBright) {
+          slide.classList.add("walkthrough-enter");
+        } else {
+          slide.classList.remove("walkthrough-enter");
+        }
 
-      requestAnimationFrame(frame);
-    }
-
-    function runWalkthroughEffects() {
-      const slide = deck.getCurrentSlide();
-      if (!isCodeWalkthroughSlide(slide)) {
-        document
-          .querySelectorAll(".reveal .slides section.code-walkthrough.walkthrough-enter")
-          .forEach((node) => node.classList.remove("walkthrough-enter"));
+        requestAnimationFrame(() => {
+          slide.classList.remove("walkthrough-enter");
+          animateScrollTo(code, targetScroll, 560);
+        });
 
         lastWalkthroughState = {
-          active: false,
-          group: "",
-          hadHighlights: false,
-          targetScroll: 0,
+          active: true,
+          group,
+          hadHighlights: hasHighlights,
+          targetScroll,
         };
-        return;
       }
 
-      const group = walkthroughGroupKey(slide);
-      const code = slide.querySelector("pre code");
-      if (!code) return;
+      function syncHashNow() {
+        if (!deckReady) return;
+        const { h, v, f } = deck.getIndices();
+        const parts = [h + 1];
 
-      const firstHighlight = code.querySelector(".highlight-line");
-      const hasHighlights = !!firstHighlight;
-      const targetScroll = hasHighlights
-        ? Math.max(0, firstHighlight.offsetTop - code.clientHeight * 0.2)
-        : 0;
-      const sameGroup = lastWalkthroughState.active && lastWalkthroughState.group === group;
-      const startScroll = sameGroup ? lastWalkthroughState.targetScroll : 0;
+        if (v > 0 || f > 0) parts.push(v + 1);
+        if (f > 0) parts.push(f + 1);
 
-      // Set initial position immediately to avoid one-frame focus flash.
-      code.scrollTop = startScroll;
-
-      const shouldFadeFromBright = hasHighlights && (!sameGroup || !lastWalkthroughState.hadHighlights);
-      if (shouldFadeFromBright) {
-        slide.classList.add("walkthrough-enter");
-      } else {
-        slide.classList.remove("walkthrough-enter");
+        const nextHash = `#/${parts.join("/")}`;
+        if (window.location.hash !== nextHash) {
+          window.history.replaceState(null, "", nextHash);
+        }
       }
 
-      requestAnimationFrame(() => {
-        slide.classList.remove("walkthrough-enter");
-        animateScrollTo(code, targetScroll, 560);
+      function currentPositionLabel(indices, horizontalSlides) {
+        const { h, v } = indices;
+        const safeIndex = Math.min(Math.max(h, 0), Math.max(horizontalSlides.length - 1, 0));
+        const currentHorizontal = horizontalSlides[safeIndex];
+        const verticalCount = currentHorizontal
+          ? currentHorizontal.querySelectorAll(":scope > section").length
+          : 0;
+
+        if (verticalCount > 0) {
+          return `${safeIndex + 1}.${v + 1}`;
+        }
+
+        return `${safeIndex + 1}`;
+      }
+
+      function updateChrome() {
+        configureWalkthroughAutoAnimateIds();
+        decorateCodeBlocks();
+        const indices = deck.getIndices();
+        const horizontalSlides = deck.getHorizontalSlides();
+        if (horizontalSlides.length > 0) {
+          stableHorizontalSlideCount = horizontalSlides.length;
+        }
+        headerText.textContent = slideHeading(deck.getCurrentSlide());
+        const current = currentPositionLabel(indices, horizontalSlides);
+        const total = Math.max(1, stableHorizontalSlideCount);
+        counter.textContent = `${current} / ${total} | present.md`;
+        syncChromeLayout();
+        syncHashNow();
+        runWalkthroughEffects();
+      }
+
+      async function bootstrapDeck() {
+        await loadSlidesMarkdown();
+
+        deck = new Reveal({
+          hash: true,
+          hashOneBasedIndex: true,
+          navigationMode: "default",
+          disableLayout: true,
+          center: false,
+          controls: false,
+          progress: false,
+          transition: "none",
+          katex: {
+            local: "./vendor/katex",
+          },
+          plugins: [RevealMarkdown, RevealHighlight, RevealMath.KaTeX()],
+        });
+
+        deck.on("ready", () => {
+          deckReady = true;
+          stableHorizontalSlideCount = Math.max(1, deck.getHorizontalSlides().length);
+          updateChrome();
+        });
+        deck.on("slidechanged", updateChrome);
+        deck.on("fragmentshown", updateChrome);
+        deck.on("fragmenthidden", updateChrome);
+        window.addEventListener("resize", handleViewportChange);
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener("resize", handleViewportChange);
+        }
+
+        await deck.initialize();
+      }
+
+      bootstrapDeck().catch((error) => {
+        console.error(error);
+        headerText.textContent = "Failed to load present.md";
+        counter.textContent = "error";
       });
-
-      lastWalkthroughState = {
-        active: true,
-        group,
-        hadHighlights: hasHighlights,
-        targetScroll,
-      };
-    }
-
-    function syncHashNow() {
-      if (!deckReady) return;
-      const { h, v, f } = deck.getIndices();
-      const parts = [h + 1];
-
-      if (v > 0 || f > 0) parts.push(v + 1);
-      if (f > 0) parts.push(f + 1);
-
-      const nextHash = `#/${parts.join("/")}`;
-      if (window.location.hash !== nextHash) {
-        window.history.replaceState(null, "", nextHash);
-      }
-    }
-
-    function currentPositionLabel(indices, horizontalSlides) {
-      const { h, v } = indices;
-      const safeIndex = Math.min(Math.max(h, 0), Math.max(horizontalSlides.length - 1, 0));
-      const currentHorizontal = horizontalSlides[safeIndex];
-      const verticalCount = currentHorizontal
-        ? currentHorizontal.querySelectorAll(":scope > section").length
-        : 0;
-
-      if (verticalCount > 0) {
-        return `${safeIndex + 1}.${v + 1}`;
-      }
-
-      return `${safeIndex + 1}`;
-    }
-
-    function updateChrome() {
-      configureWalkthroughAutoAnimateIds();
-      decorateCodeBlocks();
-      const indices = deck.getIndices();
-      const horizontalSlides = deck.getHorizontalSlides();
-      if (horizontalSlides.length > 0) {
-        stableHorizontalSlideCount = horizontalSlides.length;
-      }
-      headerText.textContent = slideHeading(deck.getCurrentSlide());
-      const current = currentPositionLabel(indices, horizontalSlides);
-      const total = Math.max(1, stableHorizontalSlideCount);
-      counter.textContent = `${current} / ${total} | present.md`;
-      syncChromeLayout();
-      syncHashNow();
-      runWalkthroughEffects();
-    }
-
-    deck.on("ready", () => {
-      deckReady = true;
-      stableHorizontalSlideCount = Math.max(1, deck.getHorizontalSlides().length);
-      updateChrome();
-    });
-    deck.on("slidechanged", updateChrome);
-    deck.on("fragmentshown", updateChrome);
-    deck.on("fragmenthidden", updateChrome);
-    window.addEventListener("resize", handleViewportChange);
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", handleViewportChange);
-    }
-    deck.initialize();
     </script>
   </body>
 </html>

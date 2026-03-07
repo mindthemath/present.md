@@ -475,6 +475,25 @@ body {
   color: #c7a8ff;
 }
 
+.reveal .katex {
+  color: var(--fg);
+}
+
+.reveal .katex-display {
+  margin: 0.3em 0 0.8em !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.reveal .katex-display > .katex {
+  text-align: left;
+}
+
+.reveal .katex-display > .base {
+  margin-left: 0;
+  margin-right: auto;
+}
+
 #deck-header {
   position: fixed;
   top: 0;

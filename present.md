@@ -116,7 +116,7 @@ def summarize(payload: dict[str, Any]) -> ValidationResult:
 
 ---
 
-## TypeScript Code Block (Short Snippet)
+## TypeScript Code Block (Short Snippet) & Math
 ```ts
 type Status = "planned" | "in_progress" | "blocked" | "done";
 
@@ -132,6 +132,13 @@ export function badgeColor(status: Status): string {
 }
 ```
 
+```math
+E = mc^2
+```
+
+```math
+\int_0^\infty e^{-x^2} \, \ dx = \frac{\sqrt{\pi}}{2}
+```
 
 ---
 

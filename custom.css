@@ -4,9 +4,17 @@
   --muted: #8f98ab;
   --line: #5f6b84;
   --slide-font-size: clamp(14px, 0.85vw + 0.65vh, 18px);
-  --content-heading-size: clamp(1.18rem, 0.58rem + 1.7vw, 2.3rem);
-  --content-body-size: clamp(1.05rem, 0.52rem + 1.45vw, 1.92rem);
-  --content-code-size: clamp(0.78rem, 0.48rem + 0.82vw, 1.32rem);
+  --content-heading-size: 28px;
+  --content-body-size: 24px;
+  --content-code-size: 18px;
+  --chrome-header-size: 13px;
+  --chrome-header-margin-y: 8px;
+  --chrome-header-margin-x: 8px;
+  --chrome-header-pad-y: 4px;
+  --chrome-header-pad-x: 7px;
+  --chrome-counter-size: 13px;
+  --chrome-counter-left: 14px;
+  --chrome-counter-bottom: 10px;
   --slide-pad-top-base: 5.2rem;
   --slide-pad-bottom-base: 3rem;
   --deck-header-offset: var(--slide-pad-top-base);
@@ -519,7 +527,7 @@ body {
   padding: 0;
   color: var(--fg);
   font-family: "JetBrains Mono", "Fira Code", "IBM Plex Mono", monospace;
-  font-size: clamp(0.72rem, 0.6rem + 0.35vw, 0.9rem);
+  font-size: var(--chrome-header-size);
   font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1.2;
@@ -529,8 +537,8 @@ body {
 
 #deck-header-text {
   display: block;
-  margin: clamp(0.35rem, 0.3rem + 0.25vw, 0.55rem) clamp(0.35rem, 0.3rem + 0.25vw, 0.55rem) 0;
-  padding: clamp(0.24rem, 0.2rem + 0.15vw, 0.34rem) clamp(0.42rem, 0.35rem + 0.2vw, 0.58rem);
+  margin: var(--chrome-header-margin-y) var(--chrome-header-margin-x) 0;
+  padding: var(--chrome-header-pad-y) var(--chrome-header-pad-x);
   border: 1px solid var(--line);
   background: rgba(12, 15, 20, 0.92);
   box-shadow: 0 0 0 1px rgba(95, 107, 132, 0.2) inset;
@@ -542,14 +550,14 @@ body {
 
 #deck-counter {
   position: fixed;
-  left: clamp(0.75rem, 0.45rem + 0.8vw, 1.1rem);
-  bottom: clamp(0.55rem, 0.35rem + 0.8vw, 0.8rem);
+  left: var(--chrome-counter-left);
+  bottom: var(--chrome-counter-bottom);
   z-index: 40;
   color: var(--muted);
   font-family: "JetBrains Mono", "Fira Code", monospace;
-  font-size: clamp(0.76rem, 0.68rem + 0.25vw, 0.9rem);
+  font-size: var(--chrome-counter-size);
   letter-spacing: 0.02em;
-  max-width: calc(100vw - 1.5rem);
+  max-width: calc(100vw - (var(--chrome-counter-left) * 2));
   overflow-wrap: anywhere;
   pointer-events: none;
 }

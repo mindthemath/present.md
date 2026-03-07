@@ -4,11 +4,9 @@
   --muted: #8f98ab;
   --line: #5f6b84;
   --slide-font-size: clamp(14px, 0.85vw + 0.65vh, 18px);
-  --content-font-scale: 1.6;
-  --content-code-scale: 1.25;
-  --content-heading-size: calc(var(--slide-font-size) * var(--content-font-scale));
-  --content-body-size: calc(var(--slide-font-size) * 0.9 * var(--content-font-scale));
-  --content-code-size: calc(var(--slide-font-size) * 0.98 * var(--content-code-scale));
+  --content-heading-size: clamp(1.18rem, 0.62rem + 1.45vw, 1.8rem);
+  --content-body-size: clamp(1.05rem, 0.55rem + 1.3vw, 1.62rem);
+  --content-code-size: clamp(0.82rem, 0.52rem + 0.72vw, 1.2rem);
   --slide-pad-top-base: 5.2rem;
   --slide-pad-bottom-base: 3rem;
   --deck-header-offset: var(--slide-pad-top-base);

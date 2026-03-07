@@ -195,80 +195,83 @@ async function generateReadme(folder, screenshots) {
 async function takeScreenshots(url, folder) {
   const screenshots = [];
   const fullUrl = `http://${host}:${port}${url}`;
+  const browser = await withStepTimeout(
+    `launch browser for ${url}`,
+    30000,
+    () => chromium.launch()
+  );
+  activeBrowsers.add(browser);
 
-  for (const [width, height, label] of resolutions) {
-    console.log(`Taking ${width}x${height} (${label}) for ${url} at ${zoomLevel}x zoom`);
-    const browser = await withStepTimeout(
-      `launch browser for ${width}x${height}`,
-      15000,
-      () => chromium.launch()
-    );
-    activeBrowsers.add(browser);
-    const page = await withStepTimeout(
-      `open page for ${width}x${height}`,
-      15000,
-      () => browser.newPage()
-    );
-    try {
-      page.setDefaultTimeout(15000);
-      page.setDefaultNavigationTimeout(15000);
-      await withStepTimeout(
-        `set viewport ${width}x${height}`,
-        10000,
-        () => page.setViewportSize({ width, height })
-      );
-      await withStepTimeout(
-        `goto ${url} at ${width}x${height}`,
+  try {
+    for (const [width, height, label] of resolutions) {
+      console.log(`Taking ${width}x${height} (${label}) for ${url} at ${zoomLevel}x zoom`);
+      const page = await withStepTimeout(
+        `open page for ${width}x${height}`,
         15000,
-        () => page.goto(fullUrl, { waitUntil: 'domcontentloaded' })
+        () => browser.newPage()
       );
-      await withStepTimeout(
-        `wait for deck ${url} at ${width}x${height}`,
-        15000,
-        () => waitForDeckReady(page, url)
-      );
-      await withStepTimeout(
-        `settle before zoom ${width}x${height}`,
-        3000,
-        () => page.waitForTimeout(500)
-      );
-      if (zoomLevel !== 1) {
+      try {
+        page.setDefaultTimeout(15000);
+        page.setDefaultNavigationTimeout(15000);
         await withStepTimeout(
-          `apply zoom ${width}x${height}`,
-          5000,
-          () => page.evaluate((zoom) => {
-            document.documentElement.style.zoom = String(zoom);
-          }, zoomLevel)
+          `set viewport ${width}x${height}`,
+          10000,
+          () => page.setViewportSize({ width, height })
         );
         await withStepTimeout(
-          `settle after zoom ${width}x${height}`,
+          `goto ${url} at ${width}x${height}`,
+          15000,
+          () => page.goto(fullUrl, { waitUntil: 'domcontentloaded' })
+        );
+        await withStepTimeout(
+          `wait for deck ${url} at ${width}x${height}`,
+          15000,
+          () => waitForDeckReady(page, url)
+        );
+        await withStepTimeout(
+          `settle before zoom ${width}x${height}`,
           3000,
-          () => page.waitForTimeout(100)
+          () => page.waitForTimeout(500)
         );
+        if (zoomLevel !== 1) {
+          await withStepTimeout(
+            `apply zoom ${width}x${height}`,
+            5000,
+            () => page.evaluate((zoom) => {
+              document.documentElement.style.zoom = String(zoom);
+            }, zoomLevel)
+          );
+          await withStepTimeout(
+            `settle after zoom ${width}x${height}`,
+            3000,
+            () => page.waitForTimeout(100)
+          );
+        }
+
+        const filename = `${width}x${height}-${label}.png`;
+        const filepath = path.join(folder, filename);
+        await withStepTimeout(
+          `save screenshot ${filename}`,
+          15000,
+          () => page.screenshot({ path: filepath, fullPage: false })
+        );
+
+        screenshots.push({ filename, width, height, label });
+      } finally {
+        await withStepTimeout(
+          `close page ${width}x${height}`,
+          5000,
+          () => page.close().catch(() => {})
+        ).catch(() => {});
       }
-
-      const filename = `${width}x${height}-${label}.png`;
-      const filepath = path.join(folder, filename);
-      await withStepTimeout(
-        `save screenshot ${filename}`,
-        15000,
-        () => page.screenshot({ path: filepath, fullPage: false })
-      );
-
-      screenshots.push({ filename, width, height, label });
-    } finally {
-      await withStepTimeout(
-        `close page ${width}x${height}`,
-        5000,
-        () => page.close().catch(() => {})
-      ).catch(() => {});
-      activeBrowsers.delete(browser);
-      await withStepTimeout(
-        `close browser ${width}x${height}`,
-        5000,
-        () => browser.close().catch(() => {})
-      ).catch(() => {});
     }
+  } finally {
+    activeBrowsers.delete(browser);
+    await withStepTimeout(
+      `close browser for ${url}`,
+      10000,
+      () => browser.close().catch(() => {})
+    ).catch(() => {});
   }
 
   return screenshots;

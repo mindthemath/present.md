@@ -106,10 +106,17 @@ body {
   margin-top: 0 !important;
 }
 
-.reveal .slides section > :not(table):not(figure):not(pre):not(section) {
+.reveal .slides section > :not(table):not(figure):not(pre):not(section):not(ul):not(ol):not(dl) {
   margin-left: 0 !important;
   margin-right: 0 !important;
   max-width: min(96ch, 100%) !important;
+  text-align: left !important;
+}
+
+.reveal .slides section > :is(ul, ol, dl) {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  max-width: 100% !important;
   text-align: left !important;
 }
 

@@ -21,6 +21,7 @@ Key objective: reduce coordination overhead while increasing release confidence.
 
 ---
 
+<!-- .slide: class="table-body-size-slide" -->
 ## Centered Data Table
 | User Type | Primary Need | Success Signal |
 | --- | --- | --- |

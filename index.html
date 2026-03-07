@@ -117,19 +117,20 @@
       function syncResponsiveSizing() {
         const width = Math.max(320, effectiveViewportWidth());
 
-        setPxVar("--content-heading-size", scaleByWidth(width, 17.5, 40, 1.02));
-        setPxVar("--content-body-size", scaleByWidth(width, 15.5, 37, 1.04));
-        setPxVar("--content-table-size", scaleByWidth(width, 10.5, 26, 1.42));
-        setPxVar("--content-code-size", scaleByWidth(width, 10.75, 29.5, 1.5));
-        setPxVar("--content-math-size", scaleByWidth(width, 18, 40, 1.04));
-        setPxVar("--chrome-header-size", scaleByWidth(width, 11, 18.5, 1.02));
-        setPxVar("--chrome-header-margin-y", scaleByWidth(width, 6, 9.75, 1));
-        setPxVar("--chrome-header-margin-x", scaleByWidth(width, 6, 10.25, 1));
-        setPxVar("--chrome-header-pad-y", scaleByWidth(width, 4, 5.9, 1));
-        setPxVar("--chrome-header-pad-x", scaleByWidth(width, 6.5, 10.75, 1));
-        setPxVar("--chrome-counter-size", scaleByWidth(width, 11.5, 18, 1.02));
-        setPxVar("--chrome-counter-left", scaleByWidth(width, 10, 17.5, 1));
-        setPxVar("--chrome-counter-bottom", scaleByWidth(width, 8, 12.5, 1));
+        setPxVar("--content-heading-size", scaleByWidth(width, 17.5, 50, 1.02));
+        setPxVar("--content-body-size", scaleByWidth(width, 15.5, 48, 1.04));
+        setPxVar("--content-table-size", scaleByWidth(width, 10.5, 42, 1.42));
+        setPxVar("--content-table-only-size", scaleByWidth(width, 12, 50, 1.28));
+        setPxVar("--content-code-size", scaleByWidth(width, 10.75, 34.5, 1.5));
+        setPxVar("--content-math-size", scaleByWidth(width, 18, 52, 1.04));
+        setPxVar("--chrome-header-size", scaleByWidth(width, 11, 26, 1.02));
+        setPxVar("--chrome-header-margin-y", scaleByWidth(width, 6, 12.5, 1));
+        setPxVar("--chrome-header-margin-x", scaleByWidth(width, 6, 13, 1));
+        setPxVar("--chrome-header-pad-y", scaleByWidth(width, 4, 7.2, 1));
+        setPxVar("--chrome-header-pad-x", scaleByWidth(width, 6.5, 13.5, 1));
+        setPxVar("--chrome-counter-size", scaleByWidth(width, 11.5, 24, 1.02));
+        setPxVar("--chrome-counter-left", scaleByWidth(width, 10, 20.5, 1));
+        setPxVar("--chrome-counter-bottom", scaleByWidth(width, 8, 15, 1));
       }
 
       function syncChromeLayout() {

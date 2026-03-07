@@ -7,6 +7,7 @@
   --content-heading-size: 28px;
   --content-body-size: 24px;
   --content-table-size: 22px;
+  --content-table-only-size: 24px;
   --content-code-size: 18px;
   --content-math-size: 30px;
   --chrome-header-size: 13px;
@@ -151,6 +152,13 @@ body {
   line-height: 1.22;
 }
 
+.reveal .slides section.table-only-slide > table:not(.hljs-ln) th,
+.reveal .slides section.table-only-slide > table:not(.hljs-ln) td,
+.reveal .slides section.table-only-slide > figure > table:not(.hljs-ln) th,
+.reveal .slides section.table-only-slide > figure > table:not(.hljs-ln) td {
+  font-size: var(--content-table-only-size);
+}
+
 .reveal .slides section ul,
 .reveal .slides section ol,
 .reveal .slides section dl {
@@ -262,13 +270,20 @@ body {
 .reveal .slides section.table-only-slide > figure {
   margin: 0 !important;
   transform: none !important;
-  max-width: min(80ch, 100%);
+  max-width: min(96ch, 100%);
   justify-self: center;
   align-self: center;
 }
 
 .reveal .slides section.table-only-slide > figure > table:not(.hljs-ln) {
   margin: 0 !important;
+}
+
+.reveal .slides section.table-body-size-slide > table:not(.hljs-ln) th,
+.reveal .slides section.table-body-size-slide > table:not(.hljs-ln) td,
+.reveal .slides section.table-body-size-slide > figure > table:not(.hljs-ln) th,
+.reveal .slides section.table-body-size-slide > figure > table:not(.hljs-ln) td {
+  font-size: var(--content-body-size);
 }
 
 .reveal .slides section table:not(.hljs-ln) th,

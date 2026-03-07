@@ -2,9 +2,12 @@
 
 set -euo pipefail
 
+RUN_STARTED_AT=$SECONDS
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PORT="${SCREENSHOT_PORT:-1313}"
 ZOOM_LEVEL="${SCREENSHOT_ZOOM_LEVEL:-1}"
+NUM_WORKERS="${SCREENSHOT_NUM_WORKERS:-${NUM_WORKERS:-1}}"
 HOST="${SCREENSHOT_HOST:-127.0.0.1}"
 OUT_DIR="${SCREENSHOT_OUT_DIR:-$ROOT_DIR/.screenshots}"
 WAIT_TIMEOUT_SECS="${SCREENSHOT_SERVER_WAIT_SECS:-30}"
@@ -19,6 +22,14 @@ require_command() {
     printf 'Missing required command: %s\n' "$1" >&2
     exit 1
   fi
+}
+
+format_elapsed_time() {
+  local total_seconds=$1
+  local hours=$((total_seconds / 3600))
+  local minutes=$(((total_seconds % 3600) / 60))
+  local seconds=$((total_seconds % 60))
+  printf '%02dh:%02dm:%02ds' "$hours" "$minutes" "$seconds"
 }
 
 cleanup() {
@@ -84,6 +95,7 @@ const outDir = process.env.SCREENSHOT_OUT_DIR || rootDir;
 const host = process.env.SCREENSHOT_HOST || '127.0.0.1';
 const port = Number(process.env.SCREENSHOT_PORT || '1313');
 const zoomLevel = Number(process.env.SCREENSHOT_ZOOM_LEVEL || '1');
+const requestedNumWorkers = Number(process.env.SCREENSHOT_NUM_WORKERS || process.env.NUM_WORKERS || '1');
 
 if (!Number.isFinite(port) || port <= 0) {
   throw new Error(`Invalid SCREENSHOT_PORT: ${process.env.SCREENSHOT_PORT}`);
@@ -91,6 +103,12 @@ if (!Number.isFinite(port) || port <= 0) {
 
 if (!Number.isFinite(zoomLevel) || zoomLevel <= 0) {
   throw new Error(`Invalid SCREENSHOT_ZOOM_LEVEL: ${process.env.SCREENSHOT_ZOOM_LEVEL}`);
+}
+
+if (!Number.isInteger(requestedNumWorkers) || requestedNumWorkers <= 0) {
+  throw new Error(
+    `Invalid SCREENSHOT_NUM_WORKERS/NUM_WORKERS: ${process.env.SCREENSHOT_NUM_WORKERS || process.env.NUM_WORKERS}`
+  );
 }
 
 // URLs to capture: [url, folderName] or [url, folderName, waitTimeMs]
@@ -215,19 +233,34 @@ async function takeScreenshots(url, folder) {
 }
 
 (async () => {
-  const allFolders = [];
+  const allFolders = urls.map(([, folderName]) => folderName);
+  const numWorkers = Math.min(requestedNumWorkers, urls.length);
+  let nextTaskIndex = 0;
+
   console.log(`Using screenshot zoom level: ${zoomLevel}x`);
+  console.log(`Using ${numWorkers} screenshot worker(s)`);
 
-  for (const [url, folderName] of urls) {
-    const folder = path.join(outDir, folderName);
-    fs.mkdirSync(folder, { recursive: true });
-    allFolders.push(folderName);
+  async function runWorker(workerId) {
+    while (true) {
+      const taskIndex = nextTaskIndex;
+      nextTaskIndex += 1;
 
-    console.log(`=== Capturing ${folderName} for ${url} ===`);
-    const screenshots = await takeScreenshots(url, folder);
-    await generateReadme(folder, screenshots);
-    console.log(`Captured ${screenshots.length} screenshots for ${folderName}`);
+      if (taskIndex >= urls.length) {
+        return;
+      }
+
+      const [url, folderName] = urls[taskIndex];
+      const folder = path.join(outDir, folderName);
+      fs.mkdirSync(folder, { recursive: true });
+
+      console.log(`[worker ${workerId}] === Capturing ${folderName} for ${url} ===`);
+      const screenshots = await takeScreenshots(url, folder);
+      await generateReadme(folder, screenshots);
+      console.log(`[worker ${workerId}] Captured ${screenshots.length} screenshots for ${folderName}`);
+    }
   }
+
+  await Promise.all(Array.from({ length: numWorkers }, (_, index) => runWorker(index + 1)));
 
   fs.writeFileSync(path.join(outDir, '_screenshot_folders.json'), JSON.stringify(allFolders));
   console.log('All screenshots saved successfully');
@@ -242,9 +275,11 @@ SCREENSHOT_OUT_DIR="$OUT_DIR" \
 SCREENSHOT_PORT="$PORT" \
 SCREENSHOT_HOST="$HOST" \
 SCREENSHOT_ZOOM_LEVEL="$ZOOM_LEVEL" \
+SCREENSHOT_NUM_WORKERS="$NUM_WORKERS" \
 node "$CAPTURE_JS" &
 CAPTURE_PID=$!
 wait "$CAPTURE_PID"
 CAPTURE_PID=""
 
 printf 'Screenshots complete. Output written under %s\n' "$OUT_DIR"
+printf 'Total execution time: %s\n' "$(format_elapsed_time "$((SECONDS - RUN_STARTED_AT))")"

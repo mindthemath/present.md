@@ -675,7 +675,8 @@ fn format_summary(team: &str, score: f32) -> String {
 - Containment:
   - freeze net-new scope for one cycle
   - split critical/non-critical paths
-  - add checkpoint at 50% completion
+    - add checkpoint at 50% completion
+  - review risk/mitigation plan at 50% completion
 
 --
 

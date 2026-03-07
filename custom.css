@@ -145,6 +145,13 @@ body {
   padding-left: 0;
 }
 
+.reveal .slides section li > ul,
+.reveal .slides section li > ol,
+.reveal .slides section li > dl {
+  margin: 0.15em 0 !important;
+  padding-left: 1.6em;
+}
+
 .reveal .slides section ul {
   list-style: none;
 }
@@ -164,6 +171,7 @@ body {
 }
 
 .reveal .slides section li {
+  margin: 0.15em 0 !important;
   margin-left: 0 !important;
   padding-left: 0 !important;
 }

@@ -9,6 +9,7 @@
   --content-table-size: clamp(18px, calc(15px + 0.22vw + 0.14vh), 26px);
   --content-table-only-size: clamp(21px, calc(16px + 0.3vw + 0.2vh), 30px);
   --content-table-fit-scale: 1;
+  --table-border-width: 1px;
   --content-code-size: clamp(16px, calc(13px + 0.2vw + 0.12vh), 22px);
   --content-math-size: clamp(26px, calc(20px + 0.38vw + 0.28vh), 38px);
   --standalone-table-slide-width: clamp(42rem, 62vw, 110rem);
@@ -221,7 +222,7 @@ body {
 .reveal .slides section table:not(.hljs-ln) {
   margin: 0.5em auto 0.8em auto !important;
   width: auto;
-  border: 1px solid rgba(95, 107, 132, 0.45);
+  border: calc(var(--table-border-width) * var(--content-table-fit-scale)) solid rgba(95, 107, 132, 0.45);
   border-collapse: collapse;
 }
 
@@ -285,7 +286,7 @@ body {
 
 .reveal .slides section table:not(.hljs-ln) th,
 .reveal .slides section table:not(.hljs-ln) td {
-  border: 1px solid rgba(95, 107, 132, 0.45);
+  border: calc(var(--table-border-width) * var(--content-table-fit-scale)) solid rgba(95, 107, 132, 0.45);
   padding: 0.18em 0.45em;
   overflow-wrap: break-word;
   word-break: normal;
@@ -293,7 +294,7 @@ body {
 }
 
 .reveal .slides section table:not(.hljs-ln) tbody tr:last-child td {
-  border-bottom: 1px solid rgba(95, 107, 132, 0.45) !important;
+  border-bottom: calc(var(--table-border-width) * var(--content-table-fit-scale)) solid rgba(95, 107, 132, 0.45) !important;
 }
 
 .reveal .slides section.code-walkthrough pre {

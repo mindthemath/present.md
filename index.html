@@ -92,12 +92,25 @@
         return t * t * (3 - 2 * t);
       }
 
-      function scaleByWidth(width, minValue, maxValue, power = 1) {
-        const minWidth = 375;
-        const maxWidth = 2560;
-        const normalized = clamp01((width - minWidth) / (maxWidth - minWidth));
+      function scaleWithinRange(value, minInput, maxInput, minValue, maxValue, power = 1) {
+        const normalized = clamp01((value - minInput) / (maxInput - minInput));
         const eased = Math.pow(smoothStep(normalized), power);
         return minValue + (maxValue - minValue) * eased;
+      }
+
+      function scaleByWidth(width, minValue, maxValue, power = 1) {
+        return scaleWithinRange(width, 375, 2560, minValue, maxValue, power);
+      }
+
+      function scaleByHeight(
+        height,
+        minValue,
+        maxValue,
+        power = 1,
+        minHeight = 360,
+        maxHeight = 1440
+      ) {
+        return scaleWithinRange(height, minHeight, maxHeight, minValue, maxValue, power);
       }
 
       function effectiveViewportWidth() {
@@ -110,21 +123,56 @@
         return window.innerWidth;
       }
 
+      function effectiveViewportHeight() {
+        if (window.visualViewport) {
+          const { height, scale } = window.visualViewport;
+          if (Number.isFinite(height) && Number.isFinite(scale) && scale > 0) {
+            return Math.max(window.innerHeight, height * scale);
+          }
+        }
+        return window.innerHeight;
+      }
+
       function setPxVar(name, value) {
         rootStyle.setProperty(name, `${Math.round(value * 100) / 100}px`);
       }
 
       function syncResponsiveSizing() {
         const width = Math.max(320, effectiveViewportWidth());
+        const height = Math.max(280, effectiveViewportHeight());
 
-        setPxVar("--content-heading-size", scaleByWidth(width, 17.5, 50, 1.02));
-        setPxVar("--content-body-size", scaleByWidth(width, 15.5, 48, 1.04));
-        setPxVar("--content-table-size", scaleByWidth(width, 10.5, 42, 1.42));
-        setPxVar("--content-table-only-size", scaleByWidth(width, 16.5, 52, 1.04));
+        setPxVar(
+          "--content-heading-size",
+          Math.min(scaleByWidth(width, 17.5, 50, 1.02), scaleByHeight(height, 17.5, 38, 1.02))
+        );
+        setPxVar(
+          "--content-body-size",
+          Math.min(scaleByWidth(width, 15.5, 48, 1.04), scaleByHeight(height, 15.5, 30, 1.04))
+        );
+        setPxVar(
+          "--content-table-size",
+          Math.min(scaleByWidth(width, 10.5, 42, 1.42), scaleByHeight(height, 10.5, 26, 1.18))
+        );
+        setPxVar(
+          "--content-table-only-size",
+          Math.min(scaleByWidth(width, 16.5, 52, 1.04), scaleByHeight(height, 16.5, 34, 1.02))
+        );
         setPxVar("--table-border-width", scaleByWidth(width, 1, 2.35, 1.04));
-        setPxVar("--content-code-size", scaleByWidth(width, 10.75, 34.5, 1.5));
-        setPxVar("--content-math-size", scaleByWidth(width, 18, 52, 1.04));
+        setPxVar(
+          "--content-code-size",
+          Math.min(scaleByWidth(width, 10.75, 34.5, 1.5), scaleByHeight(height, 10.75, 21.5, 1.22))
+        );
+        setPxVar(
+          "--content-math-size",
+          Math.min(scaleByWidth(width, 18, 52, 1.04), scaleByHeight(height, 16.5, 31, 1.08))
+        );
         setPxVar("--standalone-table-slide-width", scaleByWidth(width, 620, 1760, 1.08));
+        setPxVar("--slide-pad-top-base", scaleByHeight(height, 48, 84, 0.95, 360, 900));
+        setPxVar("--slide-pad-bottom-base", scaleByHeight(height, 36, 48, 0.95, 360, 900));
+        setPxVar("--content-pre-margin-top", scaleByHeight(height, 2, 5, 1, 360, 900));
+        setPxVar("--content-pre-margin-bottom", scaleByHeight(height, 8, 14, 1, 360, 900));
+        setPxVar("--math-display-margin-top", scaleByHeight(height, 2, 8, 1, 360, 900));
+        setPxVar("--math-display-margin-bottom", scaleByHeight(height, 8, 16, 1, 360, 900));
         setPxVar("--chrome-header-size", scaleByWidth(width, 11, 26, 1.02));
         setPxVar("--chrome-header-margin-y", scaleByWidth(width, 6, 12.5, 1));
         setPxVar("--chrome-header-margin-x", scaleByWidth(width, 6, 13, 1));
@@ -135,6 +183,65 @@
         setPxVar("--chrome-counter-bottom", scaleByWidth(width, 8, 15, 1));
       }
 
+      function syncAdaptiveContentSizing() {
+        document.querySelectorAll(".reveal .slides section").forEach((slide) => {
+          slide.style.removeProperty("--slide-content-fit-scale");
+
+          if (slide.classList.contains("stack")) {
+            return;
+          }
+
+          const measurableChildren = Array.from(slide.children).filter(
+            (child) => !child.matches("script, style")
+          );
+          if (measurableChildren.length === 0) {
+            return;
+          }
+
+          const computedStyle = window.getComputedStyle(slide);
+          const paddingTop = Number.parseFloat(computedStyle.paddingTop) || 0;
+          const paddingBottom = Number.parseFloat(computedStyle.paddingBottom) || 0;
+
+          const fits = (scale) => {
+            slide.style.setProperty("--slide-content-fit-scale", scale.toFixed(3));
+            const slideRect = slide.getBoundingClientRect();
+            const allowedTop = slideRect.top + paddingTop;
+            const allowedBottom = slideRect.bottom - paddingBottom;
+            const childRects = measurableChildren.map((child) => child.getBoundingClientRect());
+            const contentTop = Math.min(...childRects.map((rect) => rect.top));
+            const contentBottom = Math.max(...childRects.map((rect) => rect.bottom));
+            return contentTop >= allowedTop - 2 && contentBottom <= allowedBottom + 2;
+          };
+
+          if (fits(1)) {
+            slide.style.setProperty("--slide-content-fit-scale", "1");
+            return;
+          }
+
+          let bestScale = 0.72;
+          let low = 0.72;
+          let high = 1;
+
+          if (!fits(low)) {
+            slide.style.setProperty("--slide-content-fit-scale", low.toFixed(3));
+            return;
+          }
+
+          bestScale = low;
+          for (let i = 0; i < 10; i += 1) {
+            const mid = (low + high) / 2;
+            if (fits(mid)) {
+              bestScale = mid;
+              low = mid;
+            } else {
+              high = mid;
+            }
+          }
+
+          slide.style.setProperty("--slide-content-fit-scale", bestScale.toFixed(3));
+        });
+      }
+
       function syncChromeLayout() {
         syncResponsiveSizing();
         const headerHeight = Math.max(42, Math.ceil(header.getBoundingClientRect().height));
@@ -142,6 +249,7 @@
 
         rootStyle.setProperty("--deck-header-offset", `${headerHeight + 16}px`);
         rootStyle.setProperty("--deck-footer-offset", `${counterHeight + 16}px`);
+        syncAdaptiveContentSizing();
         syncAdaptiveTableSizing();
 
         // Reveal uses slide transforms, not page scrolling. Reset browser zoom drift.

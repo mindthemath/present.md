@@ -9,6 +9,7 @@
   --content-table-size: clamp(18px, calc(15px + 0.22vw + 0.14vh), 26px);
   --content-table-only-size: clamp(21px, calc(16px + 0.3vw + 0.2vh), 30px);
   --content-table-fit-scale: 1;
+  --slide-content-fit-scale: 1;
   --table-border-width: 1px;
   --content-code-size: clamp(16px, calc(13px + 0.2vw + 0.12vh), 22px);
   --content-math-size: clamp(26px, calc(20px + 0.38vw + 0.28vh), 38px);
@@ -30,6 +31,10 @@
   --slide-pad-left: clamp(1rem, 3.4vw, 4rem);
   --slide-pad-right: clamp(0.75rem, 2.2vw, 1.25rem);
   --walkthrough-code-height: min(66vh, calc(100vh - 12.5rem));
+  --content-pre-margin-top: 2px;
+  --content-pre-margin-bottom: 14px;
+  --math-display-margin-top: 4px;
+  --math-display-margin-bottom: 14px;
 }
 
 html,
@@ -133,7 +138,7 @@ body {
 .reveal .slides section h5,
 .reveal .slides section h6 {
   font-family: "JetBrains Mono", "Fira Code", monospace;
-  font-size: var(--content-heading-size);
+  font-size: calc(var(--content-heading-size) * var(--slide-content-fit-scale));
   font-weight: 500;
   letter-spacing: 0;
   line-height: 1.25;
@@ -145,13 +150,13 @@ body {
 .reveal .slides section li,
 .reveal .slides section th,
 .reveal .slides section td {
-  font-size: var(--content-body-size);
+  font-size: calc(var(--content-body-size) * var(--slide-content-fit-scale));
   line-height: 1.34;
 }
 
 .reveal .slides section table:not(.hljs-ln) th,
 .reveal .slides section table:not(.hljs-ln) td {
-  font-size: calc(var(--content-table-size) * var(--content-table-fit-scale));
+  font-size: calc(var(--content-table-size) * var(--content-table-fit-scale) * var(--slide-content-fit-scale));
   line-height: 1.22;
 }
 
@@ -159,7 +164,7 @@ body {
 .reveal .slides section.standalone-table-slide > table:not(.hljs-ln) td,
 .reveal .slides section.standalone-table-slide > figure > table:not(.hljs-ln) th,
 .reveal .slides section.standalone-table-slide > figure > table:not(.hljs-ln) td {
-  font-size: var(--content-table-only-size);
+  font-size: calc(var(--content-table-only-size) * var(--slide-content-fit-scale));
 }
 
 .reveal .slides section ul,
@@ -321,8 +326,6 @@ body {
 
 @media (max-width: 768px) {
   :root {
-    --slide-pad-top-base: 3.2rem;
-    --slide-pad-bottom-base: 2.5rem;
     --slide-pad-left: 1rem;
     --slide-pad-right: 1rem;
     --walkthrough-code-height: min(56vh, calc(100vh - 8.5rem));
@@ -397,7 +400,7 @@ body {
 
 .reveal table.hljs-ln td {
   padding: 0 !important;
-  font-size: var(--content-code-size) !important;
+  font-size: calc(var(--content-code-size) * var(--slide-content-fit-scale)) !important;
   line-height: 1.34 !important;
 }
 
@@ -419,7 +422,10 @@ body {
 }
 
 .reveal pre {
-  margin: 0.15em 0 0.7em !important;
+  margin:
+    calc(var(--content-pre-margin-top) * var(--slide-content-fit-scale))
+    0
+    calc(var(--content-pre-margin-bottom) * var(--slide-content-fit-scale)) !important;
   margin-left: 0 !important;
   margin-right: auto !important;
   display: block;
@@ -435,7 +441,7 @@ body {
   display: block;
   color: var(--muted);
   font-family: inherit;
-  font-size: var(--content-code-size);
+  font-size: calc(var(--content-code-size) * var(--slide-content-fit-scale));
   font-weight: inherit;
   letter-spacing: 0.01em;
   line-height: 1.34;
@@ -452,7 +458,7 @@ body {
 }
 
 .reveal pre code {
-  font-size: var(--content-code-size);
+  font-size: calc(var(--content-code-size) * var(--slide-content-fit-scale));
   line-height: 1.34;
   padding: 0;
   text-align: left;
@@ -534,13 +540,16 @@ body {
 
 .reveal .katex-display {
   font-size: 1em;
-  margin: 0.3em 0 0.8em !important;
+  margin:
+    calc(var(--math-display-margin-top) * var(--slide-content-fit-scale))
+    0
+    calc(var(--math-display-margin-bottom) * var(--slide-content-fit-scale)) !important;
   overflow-x: auto;
   overflow-y: hidden;
 }
 
 .reveal .katex-display > .katex {
-  font-size: var(--content-math-size) !important;
+  font-size: calc(var(--content-math-size) * var(--slide-content-fit-scale)) !important;
   text-align: left;
 }
 

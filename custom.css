@@ -7,10 +7,10 @@
   --content-heading-size: clamp(24px, calc(18px + 0.34vw + 0.24vh), 34px);
   --content-body-size: clamp(20px, calc(16px + 0.24vw + 0.16vh), 28px);
   --content-table-size: clamp(18px, calc(15px + 0.22vw + 0.14vh), 26px);
-  --content-table-only-size: clamp(20px, calc(16px + 0.24vw + 0.16vh), 28px);
+  --content-table-only-size: clamp(21px, calc(16px + 0.3vw + 0.2vh), 30px);
   --content-code-size: clamp(16px, calc(13px + 0.2vw + 0.12vh), 22px);
   --content-math-size: clamp(26px, calc(20px + 0.38vw + 0.28vh), 38px);
-  --table-body-size-slide-width: clamp(42rem, 62vw, 110rem);
+  --standalone-table-slide-width: clamp(42rem, 62vw, 110rem);
   --chrome-header-size: 13px;
   --chrome-header-margin-y: 8px;
   --chrome-header-margin-x: 8px;
@@ -153,10 +153,10 @@ body {
   line-height: 1.22;
 }
 
-.reveal .slides section.table-only-slide > table:not(.hljs-ln) th,
-.reveal .slides section.table-only-slide > table:not(.hljs-ln) td,
-.reveal .slides section.table-only-slide > figure > table:not(.hljs-ln) th,
-.reveal .slides section.table-only-slide > figure > table:not(.hljs-ln) td {
+.reveal .slides section.standalone-table-slide > table:not(.hljs-ln) th,
+.reveal .slides section.standalone-table-slide > table:not(.hljs-ln) td,
+.reveal .slides section.standalone-table-slide > figure > table:not(.hljs-ln) th,
+.reveal .slides section.standalone-table-slide > figure > table:not(.hljs-ln) td {
   font-size: var(--content-table-only-size);
 }
 
@@ -271,29 +271,14 @@ body {
 .reveal .slides section.standalone-table-slide > figure {
   margin: 0 !important;
   transform: none !important;
-  max-width: min(96ch, 100%);
+  width: min(100%, var(--standalone-table-slide-width));
+  max-width: min(100%, var(--standalone-table-slide-width));
   justify-self: center;
   align-self: center;
 }
 
 .reveal .slides section.standalone-table-slide > figure > table:not(.hljs-ln) {
   margin: 0 !important;
-}
-
-.reveal .slides section.table-body-size-slide > table:not(.hljs-ln) th,
-.reveal .slides section.table-body-size-slide > table:not(.hljs-ln) td,
-.reveal .slides section.table-body-size-slide > figure > table:not(.hljs-ln) th,
-.reveal .slides section.table-body-size-slide > figure > table:not(.hljs-ln) td {
-  font-size: var(--content-body-size);
-}
-
-.reveal .slides section.table-body-size-slide > table:not(.hljs-ln),
-.reveal .slides section.table-body-size-slide > figure {
-  width: min(100%, var(--table-body-size-slide-width));
-  max-width: min(100%, var(--table-body-size-slide-width));
-}
-
-.reveal .slides section.table-body-size-slide > figure > table:not(.hljs-ln) {
   width: 100%;
 }
 

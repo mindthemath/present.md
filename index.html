@@ -83,18 +83,21 @@
         return `${hashes} ${heading.textContent.trim()}`;
       }
 
-      function interpolateWidth(width, stops) {
-        if (!Array.isArray(stops) || stops.length === 0) return 0;
-        if (width <= stops[0][0]) return stops[0][1];
-        for (let i = 1; i < stops.length; i += 1) {
-          const [nextWidth, nextValue] = stops[i];
-          if (width <= nextWidth) {
-            const [prevWidth, prevValue] = stops[i - 1];
-            const t = (width - prevWidth) / (nextWidth - prevWidth);
-            return prevValue + (nextValue - prevValue) * t;
-          }
-        }
-        return stops[stops.length - 1][1];
+      function clamp01(value) {
+        return Math.min(1, Math.max(0, value));
+      }
+
+      function smoothStep(value) {
+        const t = clamp01(value);
+        return t * t * (3 - 2 * t);
+      }
+
+      function scaleByWidth(width, minValue, maxValue, power = 1) {
+        const minWidth = 375;
+        const maxWidth = 2560;
+        const normalized = clamp01((width - minWidth) / (maxWidth - minWidth));
+        const eased = Math.pow(smoothStep(normalized), power);
+        return minValue + (maxValue - minValue) * eased;
       }
 
       function effectiveViewportWidth() {
@@ -114,90 +117,19 @@
       function syncResponsiveSizing() {
         const width = Math.max(320, effectiveViewportWidth());
 
-        setPxVar("--content-heading-size", interpolateWidth(width, [
-          [375, 19],
-          [768, 22],
-          [1024, 25],
-          [1280, 28],
-          [1440, 30],
-          [1920, 34],
-          [2560, 40],
-        ]));
-        setPxVar("--content-body-size", interpolateWidth(width, [
-          [375, 17],
-          [768, 19.5],
-          [1024, 22],
-          [1280, 24.5],
-          [1440, 26.5],
-          [1920, 31],
-          [2560, 37],
-        ]));
-        setPxVar("--content-code-size", interpolateWidth(width, [
-          [375, 14.5],
-          [768, 16],
-          [1024, 17.5],
-          [1280, 19],
-          [1440, 20],
-          [1920, 23],
-          [2560, 28],
-        ]));
-        setPxVar("--chrome-header-size", interpolateWidth(width, [
-          [375, 11],
-          [768, 11.75],
-          [1024, 12.25],
-          [1280, 12.75],
-          [1920, 13.75],
-          [2560, 14.75],
-        ]));
-        setPxVar("--chrome-header-margin-y", interpolateWidth(width, [
-          [375, 6],
-          [768, 6.5],
-          [1280, 7.5],
-          [1920, 8.5],
-          [2560, 9.5],
-        ]));
-        setPxVar("--chrome-header-margin-x", interpolateWidth(width, [
-          [375, 6],
-          [768, 6.5],
-          [1280, 7.5],
-          [1920, 8.5],
-          [2560, 10],
-        ]));
-        setPxVar("--chrome-header-pad-y", interpolateWidth(width, [
-          [375, 4],
-          [768, 4.25],
-          [1280, 4.75],
-          [1920, 5.25],
-          [2560, 5.75],
-        ]));
-        setPxVar("--chrome-header-pad-x", interpolateWidth(width, [
-          [375, 6.5],
-          [768, 7],
-          [1280, 8],
-          [1920, 9],
-          [2560, 10.5],
-        ]));
-        setPxVar("--chrome-counter-size", interpolateWidth(width, [
-          [375, 11.5],
-          [768, 12],
-          [1280, 12.75],
-          [1920, 13.75],
-          [2560, 14.5],
-        ]));
-        setPxVar("--chrome-counter-left", interpolateWidth(width, [
-          [375, 10],
-          [768, 11],
-          [1280, 12.5],
-          [1920, 14.5],
-          [2560, 17],
-        ]));
-        setPxVar("--chrome-counter-bottom", interpolateWidth(width, [
-          [375, 8],
-          [768, 8.5],
-          [1280, 9.5],
-          [1920, 10.5],
-          [2560, 12],
-        ]));
+        setPxVar("--content-heading-size", scaleByWidth(width, 17.5, 40, 1.02));
+        setPxVar("--content-body-size", scaleByWidth(width, 15.5, 37, 1.04));
+        setPxVar("--content-table-size", scaleByWidth(width, 10.5, 26, 1.42));
+        setPxVar("--content-code-size", scaleByWidth(width, 10.75, 29.5, 1.5));
+        setPxVar("--content-math-size", scaleByWidth(width, 18, 40, 1.04));
+        setPxVar("--chrome-header-size", scaleByWidth(width, 11, 18.5, 1.02));
+        setPxVar("--chrome-header-margin-y", scaleByWidth(width, 6, 9.75, 1));
+        setPxVar("--chrome-header-margin-x", scaleByWidth(width, 6, 10.25, 1));
+        setPxVar("--chrome-header-pad-y", scaleByWidth(width, 4, 5.9, 1));
+        setPxVar("--chrome-header-pad-x", scaleByWidth(width, 6.5, 10.75, 1));
+        setPxVar("--chrome-counter-size", scaleByWidth(width, 11.5, 18, 1.02));
+        setPxVar("--chrome-counter-left", scaleByWidth(width, 10, 17.5, 1));
+        setPxVar("--chrome-counter-bottom", scaleByWidth(width, 8, 12.5, 1));
       }
 
       function syncChromeLayout() {

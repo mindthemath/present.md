@@ -6,7 +6,9 @@
   --slide-font-size: clamp(14px, 0.85vw + 0.65vh, 18px);
   --content-heading-size: 28px;
   --content-body-size: 24px;
+  --content-table-size: 22px;
   --content-code-size: 18px;
+  --content-math-size: 30px;
   --chrome-header-size: 13px;
   --chrome-header-margin-y: 8px;
   --chrome-header-margin-x: 8px;
@@ -143,6 +145,12 @@ body {
   line-height: 1.34;
 }
 
+.reveal .slides section table:not(.hljs-ln) th,
+.reveal .slides section table:not(.hljs-ln) td {
+  font-size: var(--content-table-size);
+  line-height: 1.22;
+}
+
 .reveal .slides section ul,
 .reveal .slides section ol,
 .reveal .slides section dl {
@@ -267,6 +275,9 @@ body {
 .reveal .slides section table:not(.hljs-ln) td {
   border: 1px solid rgba(95, 107, 132, 0.45);
   padding: 0.18em 0.45em;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: manual;
 }
 
 .reveal .slides section table:not(.hljs-ln) tbody tr:last-child td {
@@ -316,6 +327,13 @@ body {
   .reveal .slides section th,
   .reveal .slides section td {
     overflow-wrap: anywhere;
+  }
+
+  .reveal .slides section table:not(.hljs-ln) th,
+  .reveal .slides section table:not(.hljs-ln) td {
+    overflow-wrap: break-word;
+    word-break: normal;
+    padding: 0.12em 0.28em;
   }
 }
 
@@ -502,6 +520,7 @@ body {
 }
 
 .reveal .katex-display {
+  font-size: var(--content-math-size);
   margin: 0.3em 0 0.8em !important;
   overflow-x: auto;
   overflow-y: hidden;

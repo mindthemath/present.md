@@ -12,7 +12,7 @@ Reveal.js runtime assets are vendored in-repo for offline use.
 
 ## Run In Dev
 
-From this `reveal/` directory:
+From this directory:
 
 ```bash
 bunx --bun serve . -p 1313
@@ -30,3 +30,7 @@ wget -q -O vendor/reveal.js/dist/reveal.js https://cdn.jsdelivr.net/npm/reveal.j
 wget -q -O vendor/reveal.js/plugin/markdown/markdown.js https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/markdown/markdown.js
 wget -q -O vendor/reveal.js/plugin/highlight/highlight.js https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/highlight/highlight.js
 ```
+
+# Footer Text
+Line 294 of `index.html` can be edited to change the footer text from `present.md` to anything else.
+It is there that the styling of the pagination is also handled.

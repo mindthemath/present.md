@@ -21,7 +21,7 @@ Key objective: reduce coordination overhead while increasing release confidence.
 
 ---
 
-<!-- .slide: class="table-body-size-slide" -->
+<!-- .slide: class="standalone-table-slide table-body-size-slide" -->
 ## Centered Data Table
 | User Type | Primary Need | Success Signal |
 | --- | --- | --- |
@@ -659,7 +659,7 @@ fn format_summary(team: &str, score: f32) -> String {
 
 ---
 
-<!-- .slide: class="table-only-slide" -->
+<!-- .slide: class="standalone-table-slide table-only-slide" -->
 ## Standalone Table (Centered) with Basement Slides
 | Risk | Impact | Mitigation |
 | --- | --- | --- |

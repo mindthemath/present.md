@@ -254,8 +254,8 @@ body {
 }
 
 /* Override Reveal's display:block on .present; use grid for reliable centering */
-.reveal .slides section.table-only-slide,
-.reveal .slides section.table-only-slide.present {
+.reveal .slides section.standalone-table-slide,
+.reveal .slides section.standalone-table-slide.present {
   display: grid !important;
   place-items: center;
   place-content: center;
@@ -267,8 +267,8 @@ body {
   overflow: visible;
 }
 
-.reveal .slides section.table-only-slide > table:not(.hljs-ln),
-.reveal .slides section.table-only-slide > figure {
+.reveal .slides section.standalone-table-slide > table:not(.hljs-ln),
+.reveal .slides section.standalone-table-slide > figure {
   margin: 0 !important;
   transform: none !important;
   max-width: min(96ch, 100%);
@@ -276,7 +276,7 @@ body {
   align-self: center;
 }
 
-.reveal .slides section.table-only-slide > figure > table:not(.hljs-ln) {
+.reveal .slides section.standalone-table-slide > figure > table:not(.hljs-ln) {
   margin: 0 !important;
 }
 
@@ -343,8 +343,8 @@ body {
 
   .reveal .slides section > table:not(.hljs-ln),
   .reveal .slides section > figure,
-  .reveal .slides section.table-only-slide > table:not(.hljs-ln),
-  .reveal .slides section.table-only-slide > figure {
+  .reveal .slides section.standalone-table-slide > table:not(.hljs-ln),
+  .reveal .slides section.standalone-table-slide > figure {
     transform: none !important;
   }
 

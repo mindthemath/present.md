@@ -444,6 +444,12 @@ body {
   box-shadow: none;
 }
 
+.reveal pre:has(+ .katex-display),
+.reveal pre:has(+ p .katex-display),
+.reveal pre:has(+ p > .katex-display) {
+  margin-bottom: calc(4px * var(--slide-content-fit-scale)) !important;
+}
+
 .reveal pre.raw-fence::before,
 .reveal pre.raw-fence::after {
   display: block;
@@ -463,6 +469,12 @@ body {
 .reveal pre.raw-fence::after {
   content: "```";
   margin-top: 0.24em;
+}
+
+.reveal pre.raw-fence:has(+ .katex-display)::after,
+.reveal pre.raw-fence:has(+ p .katex-display)::after,
+.reveal pre.raw-fence:has(+ p > .katex-display)::after {
+  margin-top: 0.08em;
 }
 
 .reveal pre code {
@@ -554,6 +566,21 @@ body {
     calc(var(--math-display-margin-bottom) * var(--slide-content-fit-scale)) !important;
   overflow-x: auto;
   overflow-y: hidden;
+}
+
+.reveal pre + .katex-display {
+  margin-top: calc(0px * var(--slide-content-fit-scale)) !important;
+}
+
+.reveal pre + p:has(.katex-display),
+.reveal pre + p:has(> .katex-display) {
+  margin-top: 0 !important;
+  margin-bottom: calc(2px * var(--slide-content-fit-scale)) !important;
+}
+
+.reveal pre + p .katex-display,
+.reveal pre + p > .katex-display {
+  margin-top: 0 !important;
 }
 
 .reveal .katex-display > .katex {

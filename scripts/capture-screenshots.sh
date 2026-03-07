@@ -290,5 +290,8 @@ CAPTURE_PID=$!
 wait "$CAPTURE_PID"
 CAPTURE_PID=""
 
+printf 'Generating local screenshot viewer...\n'
+SCREENSHOT_OUT_DIR="$OUT_DIR" node "$ROOT_DIR/scripts/generate-screenshot-view.mjs"
+
 printf 'Screenshots complete. Output written under %s\n' "$OUT_DIR"
 printf 'Total execution time: %s\n' "$(format_elapsed_time "$((SECONDS - RUN_STARTED_AT))")"

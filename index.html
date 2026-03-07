@@ -141,11 +141,108 @@
 
         rootStyle.setProperty("--deck-header-offset", `${headerHeight + 16}px`);
         rootStyle.setProperty("--deck-footer-offset", `${counterHeight + 16}px`);
+        syncAdaptiveTableSizing();
 
         // Reveal uses slide transforms, not page scrolling. Reset browser zoom drift.
         if (window.scrollX !== 0 || window.scrollY !== 0) {
           window.scrollTo(0, 0);
         }
+      }
+
+      function topLevelDataTables(slide) {
+        if (!slide) return [];
+        return Array.from(
+          slide.querySelectorAll(":scope > table:not(.hljs-ln), :scope > figure > table:not(.hljs-ln)")
+        );
+      }
+
+      function syncAdaptiveTableSizing() {
+        const rootComputedStyle = window.getComputedStyle(document.documentElement);
+        const bodyFontSize = Number.parseFloat(rootComputedStyle.getPropertyValue("--content-body-size"));
+        const tableFontSize = Number.parseFloat(rootComputedStyle.getPropertyValue("--content-table-size"));
+        const maxBodyAlignedScale =
+          Number.isFinite(bodyFontSize) && Number.isFinite(tableFontSize) && tableFontSize > 0
+            ? bodyFontSize / tableFontSize
+            : 1;
+
+        document.querySelectorAll(".reveal .slides section").forEach((slide) => {
+          slide.style.removeProperty("--content-table-fit-scale");
+
+          if (slide.classList.contains("standalone-table-slide")) {
+            return;
+          }
+
+          const tables = topLevelDataTables(slide);
+          if (tables.length === 0) {
+            return;
+          }
+
+          const nonTableChildren = Array.from(slide.children).filter(
+            (child) =>
+              !child.matches(
+                "table:not(.hljs-ln), figure:has(> table:not(.hljs-ln)), script, style"
+              )
+          );
+
+          if (nonTableChildren.length === 0) {
+            return;
+          }
+
+          const computedStyle = window.getComputedStyle(slide);
+          const paddingTop = Number.parseFloat(computedStyle.paddingTop) || 0;
+          const paddingRight = Number.parseFloat(computedStyle.paddingRight) || 0;
+          const paddingBottom = Number.parseFloat(computedStyle.paddingBottom) || 0;
+          const paddingLeft = Number.parseFloat(computedStyle.paddingLeft) || 0;
+          const availableWidth =
+            slide.clientWidth - paddingLeft - paddingRight;
+          const measurableChildren = Array.from(slide.children).filter(
+            (child) => !child.matches("script, style")
+          );
+
+          const fits = (scale) => {
+            slide.style.setProperty("--content-table-fit-scale", scale.toFixed(3));
+            const slideRect = slide.getBoundingClientRect();
+            const allowedLeft = slideRect.left + paddingLeft;
+            const allowedRight = slideRect.right - paddingRight;
+            const allowedTop = slideRect.top + paddingTop;
+            const allowedBottom = slideRect.bottom - paddingBottom;
+            const widthFits = tables.every((table) => {
+              const rect = table.getBoundingClientRect();
+              return rect.left >= allowedLeft - 2 && rect.right <= Math.min(slideRect.right - 2, allowedRight + 2);
+            });
+            const childRects = measurableChildren.map((child) => child.getBoundingClientRect());
+            const contentBottom = Math.max(...childRects.map((rect) => rect.bottom));
+            const heightFits = contentBottom <= allowedBottom + 2;
+            return widthFits && heightFits;
+          };
+
+          let bestScale = 0.72;
+          let low = 0.72;
+          let high = Math.max(0.6, Math.min(2.2, maxBodyAlignedScale));
+
+          if (high < low) {
+            low = high;
+          }
+
+          if (!fits(low)) {
+            slide.style.setProperty("--content-table-fit-scale", low.toFixed(3));
+            return;
+          }
+
+          bestScale = low;
+
+          for (let i = 0; i < 10; i += 1) {
+            const mid = (low + high) / 2;
+            if (fits(mid)) {
+              bestScale = mid;
+              low = mid;
+            } else {
+              high = mid;
+            }
+          }
+
+          slide.style.setProperty("--content-table-fit-scale", bestScale.toFixed(3));
+        });
       }
 
       function handleViewportChange() {

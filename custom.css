@@ -8,6 +8,7 @@
   --content-body-size: clamp(20px, calc(16px + 0.24vw + 0.16vh), 28px);
   --content-table-size: clamp(18px, calc(15px + 0.22vw + 0.14vh), 26px);
   --content-table-only-size: clamp(21px, calc(16px + 0.3vw + 0.2vh), 30px);
+  --content-table-fit-scale: 1;
   --content-code-size: clamp(16px, calc(13px + 0.2vw + 0.12vh), 22px);
   --content-math-size: clamp(26px, calc(20px + 0.38vw + 0.28vh), 38px);
   --standalone-table-slide-width: clamp(42rem, 62vw, 110rem);
@@ -149,7 +150,7 @@ body {
 
 .reveal .slides section table:not(.hljs-ln) th,
 .reveal .slides section table:not(.hljs-ln) td {
-  font-size: var(--content-table-size);
+  font-size: calc(var(--content-table-size) * var(--content-table-fit-scale));
   line-height: 1.22;
 }
 

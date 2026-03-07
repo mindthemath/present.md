@@ -119,6 +119,13 @@
         return isShortLandscape ? Math.min(baseScale, 1) : baseScale;
       }
 
+      function viewportChromeScale(width, height, contentScale) {
+        const heightScale = scaleByHeight(height, 0.94, 1.12, 1, 360, 1440);
+        const widthScale = scaleWithinRange(width, 375, 3840, 0.98, 1.08, 1);
+        const contentInfluence = 1 + (contentScale - 1) * 0.35;
+        return Math.max(0.92, Math.min(1.16, heightScale * widthScale * contentInfluence));
+      }
+
       function slideGrowthTarget(slide) {
         const hasTopLevelTable = !!slide.querySelector(
           ":scope > table:not(.hljs-ln), :scope > figure > table:not(.hljs-ln)"
@@ -185,6 +192,7 @@
         const width = Math.max(320, effectiveViewportWidth());
         const height = Math.max(280, effectiveViewportHeight());
         const contentScale = viewportContentScale(width, height);
+        const chromeScale = viewportChromeScale(width, height, contentScale);
 
         setPxVar("--content-heading-size", scaleByWidth(width, 17.5, 50, 1.02) * contentScale);
         setPxVar("--content-body-size", scaleByWidth(width, 15.5, 48, 1.04) * contentScale);
@@ -200,14 +208,15 @@
         setPxVar("--content-pre-margin-bottom", scaleByHeight(height, 8, 14, 1, 360, 900));
         setPxVar("--math-display-margin-top", scaleByHeight(height, 2, 8, 1, 360, 900));
         setPxVar("--math-display-margin-bottom", scaleByHeight(height, 8, 16, 1, 360, 900));
-        setPxVar("--chrome-header-size", scaleByWidth(width, 11, 26, 1.02));
-        setPxVar("--chrome-header-margin-y", scaleByWidth(width, 6, 12.5, 1));
-        setPxVar("--chrome-header-margin-x", scaleByWidth(width, 6, 13, 1));
-        setPxVar("--chrome-header-pad-y", scaleByWidth(width, 4, 7.2, 1));
-        setPxVar("--chrome-header-pad-x", scaleByWidth(width, 6.5, 13.5, 1));
-        setPxVar("--chrome-counter-size", scaleByWidth(width, 11.5, 24, 1.02));
-        setPxVar("--chrome-counter-left", scaleByWidth(width, 10, 20.5, 1));
-        setPxVar("--chrome-counter-bottom", scaleByWidth(width, 8, 15, 1));
+        setPxVar("--chrome-header-size", scaleByWidth(width, 11, 26, 1.02) * chromeScale);
+        setPxVar("--chrome-header-margin-y", scaleByWidth(width, 6, 12.5, 1) * chromeScale);
+        setPxVar("--chrome-header-margin-x", scaleByWidth(width, 6, 13, 1) * chromeScale);
+        setPxVar("--chrome-header-pad-y", scaleByWidth(width, 4, 7.2, 1) * chromeScale);
+        setPxVar("--chrome-header-pad-x", scaleByWidth(width, 6.5, 13.5, 1) * chromeScale);
+        setPxVar("--chrome-border-width", scaleByWidth(width, 1, 1.8, 1) * chromeScale);
+        setPxVar("--chrome-counter-size", scaleByWidth(width, 11.5, 24, 1.02) * chromeScale);
+        setPxVar("--chrome-counter-left", scaleByWidth(width, 10, 20.5, 1) * chromeScale);
+        setPxVar("--chrome-counter-bottom", scaleByWidth(width, 8, 15, 1) * chromeScale);
       }
 
       function syncAdaptiveContentSizing() {

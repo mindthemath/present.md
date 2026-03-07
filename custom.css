@@ -19,6 +19,7 @@
   --chrome-header-margin-x: 8px;
   --chrome-header-pad-y: 4px;
   --chrome-header-pad-x: 7px;
+  --chrome-border-width: 1px;
   --chrome-counter-size: 13px;
   --chrome-counter-left: 14px;
   --chrome-counter-bottom: 10px;
@@ -588,9 +589,9 @@ body {
   display: block;
   margin: var(--chrome-header-margin-y) var(--chrome-header-margin-x) 0;
   padding: var(--chrome-header-pad-y) var(--chrome-header-pad-x);
-  border: 1px solid var(--line);
+  border: var(--chrome-border-width) solid var(--line);
   background: rgba(12, 15, 20, 0.92);
-  box-shadow: 0 0 0 1px rgba(95, 107, 132, 0.2) inset;
+  box-shadow: 0 0 0 var(--chrome-border-width) rgba(95, 107, 132, 0.2) inset;
   box-sizing: border-box;
   overflow: hidden;
   overflow-wrap: anywhere;

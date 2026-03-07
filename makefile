@@ -4,5 +4,5 @@ clean:
 	rm -rf .screenshots/
 
 test:
-	SCREENSHOT_NUM_WORKERS=4 SCREENSHOT_ZOOM_LEVEL=1 ./scripts/capture-screenshots.sh
+	SCREENSHOT_NUM_WORKERS=6 SCREENSHOT_ZOOM_LEVEL=1 ./scripts/capture-screenshots.sh
 

@@ -160,6 +160,14 @@ function getFolderTitle(folderName) {
     .join(' ');
 }
 
+let shouldLogDebugSteps = true;
+
+function logDebugStep(message) {
+  if (shouldLogDebugSteps) {
+    console.log(message);
+  }
+}
+
 async function generateReadme(folder, screenshots) {
   const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0] + 'Z';
   const readmePath = path.join(folder, 'README.md');
@@ -184,49 +192,49 @@ async function takeScreenshots(url, folder) {
   try {
     for (const [width, height, label] of resolutions) {
       console.log(`Taking ${width}x${height} (${label}) for ${url} at ${zoomLevel}x zoom`);
-      console.log(`  -> open page for ${width}x${height}`);
+      logDebugStep(`  -> open page for ${width}x${height}`);
       const page = await browser.newPage();
-      console.log(`  <- open page for ${width}x${height}`);
+      logDebugStep(`  <- open page for ${width}x${height}`);
       try {
-        console.log(`  -> set viewport ${width}x${height}`);
+        logDebugStep(`  -> set viewport ${width}x${height}`);
         await page.setViewportSize({ width, height });
-        console.log(`  <- set viewport ${width}x${height}`);
+        logDebugStep(`  <- set viewport ${width}x${height}`);
 
-        console.log(`  -> goto ${url} at ${width}x${height}`);
+        logDebugStep(`  -> goto ${url} at ${width}x${height}`);
         await page.goto(fullUrl, { waitUntil: 'networkidle' });
-        console.log(`  <- goto ${url} at ${width}x${height}`);
+        logDebugStep(`  <- goto ${url} at ${width}x${height}`);
 
-        console.log(`  -> settle before zoom ${width}x${height}`);
+        logDebugStep(`  -> settle before zoom ${width}x${height}`);
         await page.waitForTimeout(500);
-        console.log(`  <- settle before zoom ${width}x${height}`);
+        logDebugStep(`  <- settle before zoom ${width}x${height}`);
 
-        console.log(`  -> apply zoom ${width}x${height}`);
+        logDebugStep(`  -> apply zoom ${width}x${height}`);
         await page.evaluate((zoom) => {
           document.documentElement.style.zoom = String(zoom);
         }, zoomLevel);
-        console.log(`  <- apply zoom ${width}x${height}`);
+        logDebugStep(`  <- apply zoom ${width}x${height}`);
 
-        console.log(`  -> settle after zoom ${width}x${height}`);
+        logDebugStep(`  -> settle after zoom ${width}x${height}`);
         await page.waitForTimeout(100);
-        console.log(`  <- settle after zoom ${width}x${height}`);
+        logDebugStep(`  <- settle after zoom ${width}x${height}`);
 
         const filename = `${width}x${height}-${label}.png`;
         const filepath = path.join(folder, filename);
-        console.log(`  -> save screenshot ${filename}`);
+        logDebugStep(`  -> save screenshot ${filename}`);
         await page.screenshot({ path: filepath, fullPage: false });
-        console.log(`  <- save screenshot ${filename}`);
+        logDebugStep(`  <- save screenshot ${filename}`);
 
         screenshots.push({ filename, width, height, label });
       } finally {
-        console.log(`  -> close page ${width}x${height}`);
+        logDebugStep(`  -> close page ${width}x${height}`);
         await page.close();
-        console.log(`  <- close page ${width}x${height}`);
+        logDebugStep(`  <- close page ${width}x${height}`);
       }
     }
   } finally {
-    console.log(`  -> close browser for ${url}`);
+    logDebugStep(`  -> close browser for ${url}`);
     await browser.close();
-    console.log(`  <- close browser for ${url}`);
+    logDebugStep(`  <- close browser for ${url}`);
   }
 
   return screenshots;
@@ -235,6 +243,7 @@ async function takeScreenshots(url, folder) {
 (async () => {
   const allFolders = urls.map(([, folderName]) => folderName);
   const numWorkers = Math.min(requestedNumWorkers, urls.length);
+  shouldLogDebugSteps = numWorkers <= 1;
   let nextTaskIndex = 0;
 
   console.log(`Using screenshot zoom level: ${zoomLevel}x`);

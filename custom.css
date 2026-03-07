@@ -10,6 +10,7 @@
   --content-table-only-size: clamp(20px, calc(16px + 0.24vw + 0.16vh), 28px);
   --content-code-size: clamp(16px, calc(13px + 0.2vw + 0.12vh), 22px);
   --content-math-size: clamp(26px, calc(20px + 0.38vw + 0.28vh), 38px);
+  --table-body-size-slide-width: clamp(42rem, 62vw, 110rem);
   --chrome-header-size: 13px;
   --chrome-header-margin-y: 8px;
   --chrome-header-margin-x: 8px;
@@ -284,6 +285,16 @@ body {
 .reveal .slides section.table-body-size-slide > figure > table:not(.hljs-ln) th,
 .reveal .slides section.table-body-size-slide > figure > table:not(.hljs-ln) td {
   font-size: var(--content-body-size);
+}
+
+.reveal .slides section.table-body-size-slide > table:not(.hljs-ln),
+.reveal .slides section.table-body-size-slide > figure {
+  width: min(100%, var(--table-body-size-slide-width));
+  max-width: min(100%, var(--table-body-size-slide-width));
+}
+
+.reveal .slides section.table-body-size-slide > figure > table:not(.hljs-ln) {
+  width: 100%;
 }
 
 .reveal .slides section table:not(.hljs-ln) th,

@@ -546,13 +546,14 @@ body {
 }
 
 .reveal .katex-display {
-  font-size: var(--content-math-size);
+  font-size: 1em;
   margin: 0.3em 0 0.8em !important;
   overflow-x: auto;
   overflow-y: hidden;
 }
 
 .reveal .katex-display > .katex {
+  font-size: var(--content-math-size) !important;
   text-align: left;
 }
 

@@ -9,7 +9,7 @@ HOST="${SCREENSHOT_HOST:-127.0.0.1}"
 OUT_DIR="${SCREENSHOT_OUT_DIR:-$ROOT_DIR/.screenshots}"
 WAIT_TIMEOUT_SECS="${SCREENSHOT_SERVER_WAIT_SECS:-30}"
 SERVER_LOG="$(mktemp)"
-CAPTURE_JS="$(mktemp)"
+CAPTURE_JS="$(mktemp "$ROOT_DIR/.capture-screenshots.XXXXXX.cjs")"
 CAPTURE_PID=""
 SERVER_PID=""
 IN_CLEANUP=0
@@ -44,8 +44,12 @@ trap 'cleanup' EXIT INT TERM
 require_command curl
 require_command bun
 require_command bunx
+require_command node
 
 mkdir -p "$OUT_DIR"
+
+printf 'Ensuring Playwright package is installed...\n'
+bun add -d playwright >/dev/null
 
 printf 'Ensuring Playwright Chromium is installed...\n'
 bunx playwright install chromium >/dev/null
@@ -80,7 +84,6 @@ const outDir = process.env.SCREENSHOT_OUT_DIR || rootDir;
 const host = process.env.SCREENSHOT_HOST || '127.0.0.1';
 const port = Number(process.env.SCREENSHOT_PORT || '1313');
 const zoomLevel = Number(process.env.SCREENSHOT_ZOOM_LEVEL || '1');
-const activeBrowsers = new Set();
 
 if (!Number.isFinite(port) || port <= 0) {
   throw new Error(`Invalid SCREENSHOT_PORT: ${process.env.SCREENSHOT_PORT}`);
@@ -139,24 +142,6 @@ function getFolderTitle(folderName) {
     .join(' ');
 }
 
-function timeoutAfter(ms, label) {
-  return new Promise((_, reject) => {
-    setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
-  });
-}
-
-async function withStepTimeout(label, ms, action) {
-  console.log(`  -> ${label}`);
-  try {
-    const result = await Promise.race([action(), timeoutAfter(ms, label)]);
-    console.log(`  <- ${label}`);
-    return result;
-  } catch (error) {
-    console.error(`  xx ${label}`);
-    throw error;
-  }
-}
-
 async function generateReadme(folder, screenshots) {
   const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0] + 'Z';
   const readmePath = path.join(folder, 'README.md');
@@ -174,107 +159,60 @@ async function generateReadme(folder, screenshots) {
 }
 
 async function takeScreenshots(url, folder) {
-  const screenshots = [];
   const fullUrl = `http://${host}:${port}${url}`;
-  const browser = await withStepTimeout(
-    `launch browser for ${url}`,
-    30000,
-    () => chromium.launch()
-  );
-  activeBrowsers.add(browser);
+  const browser = await chromium.launch();
+  const screenshots = [];
 
   try {
     for (const [width, height, label] of resolutions) {
       console.log(`Taking ${width}x${height} (${label}) for ${url} at ${zoomLevel}x zoom`);
-      const page = await withStepTimeout(
-        `open page for ${width}x${height}`,
-        15000,
-        () => browser.newPage()
-      );
+      console.log(`  -> open page for ${width}x${height}`);
+      const page = await browser.newPage();
+      console.log(`  <- open page for ${width}x${height}`);
       try {
-        page.setDefaultTimeout(15000);
-        page.setDefaultNavigationTimeout(30000);
-        await withStepTimeout(
-          `set viewport ${width}x${height}`,
-          10000,
-          () => page.setViewportSize({ width, height })
-        );
-        await withStepTimeout(
-          `goto ${url} at ${width}x${height}`,
-          30000,
-          () => page.goto(fullUrl, { waitUntil: 'networkidle' })
-        );
-        await withStepTimeout(
-          `settle before zoom ${width}x${height}`,
-          3000,
-          () => page.waitForTimeout(500)
-        );
-        if (zoomLevel !== 1) {
-          await withStepTimeout(
-            `apply zoom ${width}x${height}`,
-            5000,
-            () => page.evaluate((zoom) => {
-              document.documentElement.style.zoom = String(zoom);
-            }, zoomLevel)
-          );
-          await withStepTimeout(
-            `settle after zoom ${width}x${height}`,
-            3000,
-            () => page.waitForTimeout(100)
-          );
-        }
+        console.log(`  -> set viewport ${width}x${height}`);
+        await page.setViewportSize({ width, height });
+        console.log(`  <- set viewport ${width}x${height}`);
+
+        console.log(`  -> goto ${url} at ${width}x${height}`);
+        await page.goto(fullUrl, { waitUntil: 'networkidle' });
+        console.log(`  <- goto ${url} at ${width}x${height}`);
+
+        console.log(`  -> settle before zoom ${width}x${height}`);
+        await page.waitForTimeout(500);
+        console.log(`  <- settle before zoom ${width}x${height}`);
+
+        console.log(`  -> apply zoom ${width}x${height}`);
+        await page.evaluate((zoom) => {
+          document.documentElement.style.zoom = String(zoom);
+        }, zoomLevel);
+        console.log(`  <- apply zoom ${width}x${height}`);
+
+        console.log(`  -> settle after zoom ${width}x${height}`);
+        await page.waitForTimeout(100);
+        console.log(`  <- settle after zoom ${width}x${height}`);
 
         const filename = `${width}x${height}-${label}.png`;
         const filepath = path.join(folder, filename);
-        await withStepTimeout(
-          `save screenshot ${filename}`,
-          15000,
-          () => page.screenshot({ path: filepath, fullPage: false })
-        );
+        console.log(`  -> save screenshot ${filename}`);
+        await page.screenshot({ path: filepath, fullPage: false });
+        console.log(`  <- save screenshot ${filename}`);
 
         screenshots.push({ filename, width, height, label });
       } finally {
-        await withStepTimeout(
-          `close page ${width}x${height}`,
-          5000,
-          () => page.close().catch(() => {})
-        ).catch(() => {});
+        console.log(`  -> close page ${width}x${height}`);
+        await page.close();
+        console.log(`  <- close page ${width}x${height}`);
       }
     }
   } finally {
-    activeBrowsers.delete(browser);
-    await withStepTimeout(
-      `close browser for ${url}`,
-      10000,
-      () => browser.close().catch(() => {})
-    ).catch(() => {});
+    console.log(`  -> close browser for ${url}`);
+    await browser.close();
+    console.log(`  <- close browser for ${url}`);
   }
 
   return screenshots;
 }
-
-async function shutdown(code) {
-  const browsers = Array.from(activeBrowsers);
-  activeBrowsers.clear();
-  await Promise.all(
-    browsers.map((browser) => browser.close().catch(() => {}))
-  );
-  process.exit(code);
-}
-
-process.on('SIGINT', () => {
-  shutdown(130).catch((error) => {
-    console.error('Error during SIGINT cleanup:', error);
-    process.exit(130);
-  });
-});
-
-process.on('SIGTERM', () => {
-  shutdown(143).catch((error) => {
-    console.error('Error during SIGTERM cleanup:', error);
-    process.exit(143);
-  });
-});
 
 (async () => {
   const allFolders = [];
@@ -304,7 +242,7 @@ SCREENSHOT_OUT_DIR="$OUT_DIR" \
 SCREENSHOT_PORT="$PORT" \
 SCREENSHOT_HOST="$HOST" \
 SCREENSHOT_ZOOM_LEVEL="$ZOOM_LEVEL" \
-bun "$CAPTURE_JS" &
+node "$CAPTURE_JS" &
 CAPTURE_PID=$!
 wait "$CAPTURE_PID"
 CAPTURE_PID=""

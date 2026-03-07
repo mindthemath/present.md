@@ -32,6 +32,7 @@ SCREENSHOT_ZOOM_LEVEL=1 ./scripts/capture-screenshots.sh
 ```
 
 This writes slide image folders plus `_screenshot_folders.json` into `.screenshots/` by default.
+The script aligns with CI by ensuring the `playwright` package is installed locally before capture, then installing Chromium.
 Override `SCREENSHOT_OUT_DIR` to capture elsewhere, and `SCREENSHOT_PORT` if `1313` is already in use.
 
 ## Authoring Math

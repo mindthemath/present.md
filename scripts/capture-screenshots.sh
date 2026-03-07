@@ -139,51 +139,6 @@ function getFolderTitle(folderName) {
     .join(' ');
 }
 
-function hashForUrl(url) {
-  const hashIndex = url.indexOf('#');
-  return hashIndex >= 0 ? url.slice(hashIndex) : '';
-}
-
-function targetPositionForUrl(url) {
-  const hash = hashForUrl(url);
-  if (!hash) return '1';
-  const parts = hash.replace(/^#\//, '').split('/').filter(Boolean);
-  if (parts.length === 0) return '1';
-  return parts.slice(0, 2).join('.');
-}
-
-async function forceTargetRoute(page, url) {
-  const expectedHash = hashForUrl(url);
-  if (!expectedHash) return;
-  await page.evaluate(async (hash) => {
-    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-    if (window.location.hash !== hash) {
-      window.location.hash = hash;
-      return;
-    }
-    // Re-emit a real hash transition so Reveal reprocesses deep links.
-    window.location.hash = '#/1';
-    await delay(0);
-    window.location.hash = hash;
-  }, expectedHash);
-}
-
-async function waitForDeckReady(page, url) {
-  const expectedPosition = targetPositionForUrl(url);
-  await page.waitForSelector('.reveal.ready', { timeout: 15000 });
-  await forceTargetRoute(page, url);
-  await page.waitForFunction(
-    (position) => {
-      const counter = document.getElementById('deck-counter')?.textContent?.trim();
-      if (!counter) return false;
-      const current = counter.split('|')[0]?.split('/')[0]?.trim();
-      return current === position;
-    },
-    expectedPosition,
-    { timeout: 15000 }
-  );
-}
-
 function timeoutAfter(ms, label) {
   return new Promise((_, reject) => {
     setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
@@ -238,7 +193,7 @@ async function takeScreenshots(url, folder) {
       );
       try {
         page.setDefaultTimeout(15000);
-        page.setDefaultNavigationTimeout(15000);
+        page.setDefaultNavigationTimeout(30000);
         await withStepTimeout(
           `set viewport ${width}x${height}`,
           10000,
@@ -246,13 +201,8 @@ async function takeScreenshots(url, folder) {
         );
         await withStepTimeout(
           `goto ${url} at ${width}x${height}`,
-          15000,
-          () => page.goto(fullUrl, { waitUntil: 'domcontentloaded' })
-        );
-        await withStepTimeout(
-          `wait for deck ${url} at ${width}x${height}`,
-          15000,
-          () => waitForDeckReady(page, url)
+          30000,
+          () => page.goto(fullUrl, { waitUntil: 'networkidle' })
         );
         await withStepTimeout(
           `settle before zoom ${width}x${height}`,

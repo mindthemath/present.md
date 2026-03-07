@@ -11,6 +11,7 @@ Reveal.js runtime assets are vendored in-repo for offline use.
 - `vendor/reveal.js/`: local Reveal.js CSS/JS/plugin assets used by `index.html`.
 - `vendor/katex/`: slim local KaTeX runtime used for offline math rendering.
 - `scripts/vendor-katex.sh`: idempotent vendoring script for the KaTeX runtime subset.
+- `scripts/capture-screenshots.sh`: local multi-resolution screenshot capture for visual validation.
 
 ## Run In Dev
 
@@ -21,6 +22,17 @@ bunx --bun serve . -p 1313
 ```
 
 Then open the local URL printed by `serve` in your browser.
+
+## Capture Screenshots Locally
+
+To validate typography/layout changes across the same resolution set used in CI:
+
+```bash
+SCREENSHOT_ZOOM_LEVEL=1 ./scripts/capture-screenshots.sh
+```
+
+This writes slide image folders plus `_screenshot_folders.json` into `.screenshots/` by default.
+Override `SCREENSHOT_OUT_DIR` to capture elsewhere, and `SCREENSHOT_PORT` if `1313` is already in use.
 
 ## Authoring Math
 

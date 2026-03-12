@@ -1,7 +1,7 @@
 # Single Line Text
 Clear priorities, measurable outcomes, and faster iteration.
 
-[overview](/view.html)
+[overview](/present.md/view.html)
 
 ---
 

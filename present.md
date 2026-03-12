@@ -21,6 +21,7 @@ Key objective: reduce coordination overhead while increasing release confidence.
 
 ---
 
+<!-- .slide: class="standalone-table-slide" -->
 ## Centered Data Table
 | User Type | Primary Need | Success Signal |
 | --- | --- | --- |
@@ -116,7 +117,7 @@ def summarize(payload: dict[str, Any]) -> ValidationResult:
 
 ---
 
-## TypeScript Code Block (Short Snippet)
+## TypeScript Code Block (Short Snippet) & Math
 ```ts
 type Status = "planned" | "in_progress" | "blocked" | "done";
 
@@ -132,6 +133,13 @@ export function badgeColor(status: Status): string {
 }
 ```
 
+```math
+E = mc^2
+```
+
+```math
+\int_0^\infty e^{-x^2} \, \ dx = \frac{\sqrt{\pi}}{2}
+```
 
 ---
 
@@ -651,7 +659,7 @@ fn format_summary(team: &str, score: f32) -> String {
 
 ---
 
-<!-- .slide: class="table-only-slide" -->
+<!-- .slide: class="standalone-table-slide" -->
 ## Standalone Table (Centered) with Basement Slides
 | Risk | Impact | Mitigation |
 | --- | --- | --- |
@@ -668,7 +676,8 @@ fn format_summary(team: &str, score: f32) -> String {
 - Containment:
   - freeze net-new scope for one cycle
   - split critical/non-critical paths
-  - add checkpoint at 50% completion
+    - add checkpoint at 50% completion
+  - review risk/mitigation plan at 50% completion
 
 --
 

@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Screenshot Viewer</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f1117;
+      --panel: #171b25;
+      --panel-2: #1f2532;
+      --border: #2c3547;
+      --text: #ecf2ff;
+      --muted: #9baccc;
+      --accent: #88b4ff;
+      --missing: #74809a;
+      --shadow: rgba(0, 0, 0, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .page {
+      padding: 24px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(15, 17, 23, 0.92);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 16px 40px var(--shadow);
+    }
+
+    .title {
+      display: grid;
+      gap: 4px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .stats {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 10px 14px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    button.active {
+      border-color: var(--accent);
+      background: var(--panel-2);
+      color: #ffffff;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: 0 16px 40px var(--shadow);
+    }
+
+    table {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: rgba(23, 27, 37, 0.97);
+    }
+
+    tbody th {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: rgba(23, 27, 37, 0.97);
+    }
+
+    th,
+    td {
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 12px;
+      vertical-align: top;
+    }
+
+    thead th:first-child {
+      left: 0;
+      z-index: 4;
+    }
+
+    tr:first-child th,
+    tr:first-child td {
+      border-top: 0;
+    }
+
+    th:first-child,
+    td:first-child {
+      border-left: 0;
+    }
+
+    .axis {
+      min-width: 200px;
+      max-width: 200px;
+      text-align: left;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .axis small,
+    .header small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .header {
+      min-width: 240px;
+      text-align: left;
+    }
+
+    .cell {
+      display: grid;
+      gap: 8px;
+      width: 240px;
+    }
+
+    .thumb-link {
+      display: block;
+      width: fit-content;
+      max-width: 100%;
+      text-decoration: none;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.04) 75%, rgba(255,255,255,0.04)),
+        linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.04) 75%, rgba(255,255,255,0.04));
+      background-position: 0 0, 10px 10px;
+      background-size: 20px 20px;
+    }
+
+    .meta {
+      display: grid;
+      gap: 2px;
+      font-size: 13px;
+    }
+
+    .meta .muted,
+    .missing {
+      color: var(--muted);
+    }
+
+    .missing {
+      width: 240px;
+      min-height: 180px;
+      display: grid;
+      place-items: center;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        padding: 12px;
+      }
+
+      .toolbar {
+        padding: 12px;
+      }
+
+      .axis {
+        min-width: 160px;
+      }
+
+      .header,
+      .cell,
+      .missing {
+        width: 180px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="toolbar">
+      <div class="title">
+        <h1>Resolution Review</h1>
+        <div class="stats" id="stats"></div>
+      </div>
+      <div class="controls" aria-label="Group screenshots">
+        <button type="button" data-group="slide">Group by slide</button>
+        <button type="button" data-group="resolution">Group by resolution</button>
+      </div>
+    </section>
+
+    <section class="table-wrap">
+      <table>
+        <thead id="table-head"></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <script>
+    const data = {"generatedAt":"2026-03-12T05:09:41.891Z","slideCount":14,"screenshotCount":182,"slides":[{"key":"slide-01","title":"SLIDE 01"},{"key":"slide-02","title":"SLIDE 02"},{"key":"slide-03","title":"SLIDE 03"},{"key":"slide-04","title":"SLIDE 04"},{"key":"slide-08-01","title":"SLIDE 08 01"},{"key":"slide-08-02","title":"SLIDE 08 02"},{"key":"slide-09","title":"SLIDE 09"},{"key":"slide-10","title":"SLIDE 10"},{"key":"slide-11","title":"SLIDE 11"},{"key":"slide-12","title":"SLIDE 12"},{"key":"slide-15","title":"SLIDE 15"},{"key":"slide-16-01","title":"SLIDE 16 01"},{"key":"slide-16-02","title":"SLIDE 16 02"},{"key":"slide-16-03","title":"SLIDE 16 03"}],"resolutions":[{"key":"375x667-iphone-se","width":375,"height":667,"label":"iphone-se","title":"iphone-se"},{"key":"390x844-iphone-12-13","width":390,"height":844,"label":"iphone-12-13","title":"iphone-12-13"},{"key":"430x932-iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","title":"iphone-14-15-16-17-pro-max"},{"key":"667x375-iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","title":"iphone-se-landscape"},{"key":"844x390-iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","title":"iphone-12-13-landscape"},{"key":"932x430-iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","title":"iphone-14-15-16-17-pro-max-landscape"},{"key":"768x1024-ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","title":"ipad-portrait"},{"key":"1024x768-ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","title":"ipad-landscape"},{"key":"1280x720-desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","title":"desktop-1280x720"},{"key":"1366x768-desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","title":"desktop-1366x768"},{"key":"1440x900-desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","title":"desktop-1440x900"},{"key":"1920x1080-desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","title":"desktop-1920x1080"},{"key":"2560x1440-desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","title":"desktop-2560x1440"}],"screenshots":[{"id":"slide-01:375x667-iphone-se","slide":"slide-01","slideTitle":"SLIDE 01","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-01/375x667-iphone-se.png"},{"id":"slide-01:390x844-iphone-12-13","slide":"slide-01","slideTitle":"SLIDE 01","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-01/390x844-iphone-12-13.png"},{"id":"slide-01:430x932-iphone-14-15-16-17-pro-max","slide":"slide-01","slideTitle":"SLIDE 01","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-01/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-01:667x375-iphone-se-landscape","slide":"slide-01","slideTitle":"SLIDE 01","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-01/667x375-iphone-se-landscape.png"},{"id":"slide-01:768x1024-ipad-portrait","slide":"slide-01","slideTitle":"SLIDE 01","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-01/768x1024-ipad-portrait.png"},{"id":"slide-01:844x390-iphone-12-13-landscape","slide":"slide-01","slideTitle":"SLIDE 01","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-01/844x390-iphone-12-13-landscape.png"},{"id":"slide-01:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-01","slideTitle":"SLIDE 01","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-01/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-01:1024x768-ipad-landscape","slide":"slide-01","slideTitle":"SLIDE 01","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-01/1024x768-ipad-landscape.png"},{"id":"slide-01:1280x720-desktop-1280x720","slide":"slide-01","slideTitle":"SLIDE 01","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-01/1280x720-desktop-1280x720.png"},{"id":"slide-01:1366x768-desktop-1366x768","slide":"slide-01","slideTitle":"SLIDE 01","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-01/1366x768-desktop-1366x768.png"},{"id":"slide-01:1440x900-desktop-1440x900","slide":"slide-01","slideTitle":"SLIDE 01","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-01/1440x900-desktop-1440x900.png"},{"id":"slide-01:1920x1080-desktop-1920x1080","slide":"slide-01","slideTitle":"SLIDE 01","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-01/1920x1080-desktop-1920x1080.png"},{"id":"slide-01:2560x1440-desktop-2560x1440","slide":"slide-01","slideTitle":"SLIDE 01","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-01/2560x1440-desktop-2560x1440.png"},{"id":"slide-02:375x667-iphone-se","slide":"slide-02","slideTitle":"SLIDE 02","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-02/375x667-iphone-se.png"},{"id":"slide-02:390x844-iphone-12-13","slide":"slide-02","slideTitle":"SLIDE 02","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-02/390x844-iphone-12-13.png"},{"id":"slide-02:430x932-iphone-14-15-16-17-pro-max","slide":"slide-02","slideTitle":"SLIDE 02","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-02/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-02:667x375-iphone-se-landscape","slide":"slide-02","slideTitle":"SLIDE 02","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-02/667x375-iphone-se-landscape.png"},{"id":"slide-02:768x1024-ipad-portrait","slide":"slide-02","slideTitle":"SLIDE 02","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-02/768x1024-ipad-portrait.png"},{"id":"slide-02:844x390-iphone-12-13-landscape","slide":"slide-02","slideTitle":"SLIDE 02","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-02/844x390-iphone-12-13-landscape.png"},{"id":"slide-02:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-02","slideTitle":"SLIDE 02","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-02/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-02:1024x768-ipad-landscape","slide":"slide-02","slideTitle":"SLIDE 02","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-02/1024x768-ipad-landscape.png"},{"id":"slide-02:1280x720-desktop-1280x720","slide":"slide-02","slideTitle":"SLIDE 02","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-02/1280x720-desktop-1280x720.png"},{"id":"slide-02:1366x768-desktop-1366x768","slide":"slide-02","slideTitle":"SLIDE 02","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-02/1366x768-desktop-1366x768.png"},{"id":"slide-02:1440x900-desktop-1440x900","slide":"slide-02","slideTitle":"SLIDE 02","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-02/1440x900-desktop-1440x900.png"},{"id":"slide-02:1920x1080-desktop-1920x1080","slide":"slide-02","slideTitle":"SLIDE 02","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-02/1920x1080-desktop-1920x1080.png"},{"id":"slide-02:2560x1440-desktop-2560x1440","slide":"slide-02","slideTitle":"SLIDE 02","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-02/2560x1440-desktop-2560x1440.png"},{"id":"slide-03:375x667-iphone-se","slide":"slide-03","slideTitle":"SLIDE 03","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-03/375x667-iphone-se.png"},{"id":"slide-03:390x844-iphone-12-13","slide":"slide-03","slideTitle":"SLIDE 03","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-03/390x844-iphone-12-13.png"},{"id":"slide-03:430x932-iphone-14-15-16-17-pro-max","slide":"slide-03","slideTitle":"SLIDE 03","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-03/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-03:667x375-iphone-se-landscape","slide":"slide-03","slideTitle":"SLIDE 03","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-03/667x375-iphone-se-landscape.png"},{"id":"slide-03:768x1024-ipad-portrait","slide":"slide-03","slideTitle":"SLIDE 03","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-03/768x1024-ipad-portrait.png"},{"id":"slide-03:844x390-iphone-12-13-landscape","slide":"slide-03","slideTitle":"SLIDE 03","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-03/844x390-iphone-12-13-landscape.png"},{"id":"slide-03:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-03","slideTitle":"SLIDE 03","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-03/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-03:1024x768-ipad-landscape","slide":"slide-03","slideTitle":"SLIDE 03","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-03/1024x768-ipad-landscape.png"},{"id":"slide-03:1280x720-desktop-1280x720","slide":"slide-03","slideTitle":"SLIDE 03","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-03/1280x720-desktop-1280x720.png"},{"id":"slide-03:1366x768-desktop-1366x768","slide":"slide-03","slideTitle":"SLIDE 03","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-03/1366x768-desktop-1366x768.png"},{"id":"slide-03:1440x900-desktop-1440x900","slide":"slide-03","slideTitle":"SLIDE 03","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-03/1440x900-desktop-1440x900.png"},{"id":"slide-03:1920x1080-desktop-1920x1080","slide":"slide-03","slideTitle":"SLIDE 03","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-03/1920x1080-desktop-1920x1080.png"},{"id":"slide-03:2560x1440-desktop-2560x1440","slide":"slide-03","slideTitle":"SLIDE 03","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-03/2560x1440-desktop-2560x1440.png"},{"id":"slide-04:375x667-iphone-se","slide":"slide-04","slideTitle":"SLIDE 04","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-04/375x667-iphone-se.png"},{"id":"slide-04:390x844-iphone-12-13","slide":"slide-04","slideTitle":"SLIDE 04","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-04/390x844-iphone-12-13.png"},{"id":"slide-04:430x932-iphone-14-15-16-17-pro-max","slide":"slide-04","slideTitle":"SLIDE 04","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-04/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-04:667x375-iphone-se-landscape","slide":"slide-04","slideTitle":"SLIDE 04","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-04/667x375-iphone-se-landscape.png"},{"id":"slide-04:768x1024-ipad-portrait","slide":"slide-04","slideTitle":"SLIDE 04","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-04/768x1024-ipad-portrait.png"},{"id":"slide-04:844x390-iphone-12-13-landscape","slide":"slide-04","slideTitle":"SLIDE 04","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-04/844x390-iphone-12-13-landscape.png"},{"id":"slide-04:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-04","slideTitle":"SLIDE 04","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-04/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-04:1024x768-ipad-landscape","slide":"slide-04","slideTitle":"SLIDE 04","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-04/1024x768-ipad-landscape.png"},{"id":"slide-04:1280x720-desktop-1280x720","slide":"slide-04","slideTitle":"SLIDE 04","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-04/1280x720-desktop-1280x720.png"},{"id":"slide-04:1366x768-desktop-1366x768","slide":"slide-04","slideTitle":"SLIDE 04","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-04/1366x768-desktop-1366x768.png"},{"id":"slide-04:1440x900-desktop-1440x900","slide":"slide-04","slideTitle":"SLIDE 04","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-04/1440x900-desktop-1440x900.png"},{"id":"slide-04:1920x1080-desktop-1920x1080","slide":"slide-04","slideTitle":"SLIDE 04","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-04/1920x1080-desktop-1920x1080.png"},{"id":"slide-04:2560x1440-desktop-2560x1440","slide":"slide-04","slideTitle":"SLIDE 04","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-04/2560x1440-desktop-2560x1440.png"},{"id":"slide-08-01:375x667-iphone-se","slide":"slide-08-01","slideTitle":"SLIDE 08 01","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-08-01/375x667-iphone-se.png"},{"id":"slide-08-01:390x844-iphone-12-13","slide":"slide-08-01","slideTitle":"SLIDE 08 01","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-08-01/390x844-iphone-12-13.png"},{"id":"slide-08-01:430x932-iphone-14-15-16-17-pro-max","slide":"slide-08-01","slideTitle":"SLIDE 08 01","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-08-01/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-08-01:667x375-iphone-se-landscape","slide":"slide-08-01","slideTitle":"SLIDE 08 01","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-08-01/667x375-iphone-se-landscape.png"},{"id":"slide-08-01:768x1024-ipad-portrait","slide":"slide-08-01","slideTitle":"SLIDE 08 01","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-08-01/768x1024-ipad-portrait.png"},{"id":"slide-08-01:844x390-iphone-12-13-landscape","slide":"slide-08-01","slideTitle":"SLIDE 08 01","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-08-01/844x390-iphone-12-13-landscape.png"},{"id":"slide-08-01:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-08-01","slideTitle":"SLIDE 08 01","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-08-01/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-08-01:1024x768-ipad-landscape","slide":"slide-08-01","slideTitle":"SLIDE 08 01","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-08-01/1024x768-ipad-landscape.png"},{"id":"slide-08-01:1280x720-desktop-1280x720","slide":"slide-08-01","slideTitle":"SLIDE 08 01","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-08-01/1280x720-desktop-1280x720.png"},{"id":"slide-08-01:1366x768-desktop-1366x768","slide":"slide-08-01","slideTitle":"SLIDE 08 01","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-08-01/1366x768-desktop-1366x768.png"},{"id":"slide-08-01:1440x900-desktop-1440x900","slide":"slide-08-01","slideTitle":"SLIDE 08 01","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-08-01/1440x900-desktop-1440x900.png"},{"id":"slide-08-01:1920x1080-desktop-1920x1080","slide":"slide-08-01","slideTitle":"SLIDE 08 01","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-08-01/1920x1080-desktop-1920x1080.png"},{"id":"slide-08-01:2560x1440-desktop-2560x1440","slide":"slide-08-01","slideTitle":"SLIDE 08 01","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-08-01/2560x1440-desktop-2560x1440.png"},{"id":"slide-08-02:375x667-iphone-se","slide":"slide-08-02","slideTitle":"SLIDE 08 02","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-08-02/375x667-iphone-se.png"},{"id":"slide-08-02:390x844-iphone-12-13","slide":"slide-08-02","slideTitle":"SLIDE 08 02","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-08-02/390x844-iphone-12-13.png"},{"id":"slide-08-02:430x932-iphone-14-15-16-17-pro-max","slide":"slide-08-02","slideTitle":"SLIDE 08 02","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-08-02/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-08-02:667x375-iphone-se-landscape","slide":"slide-08-02","slideTitle":"SLIDE 08 02","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-08-02/667x375-iphone-se-landscape.png"},{"id":"slide-08-02:768x1024-ipad-portrait","slide":"slide-08-02","slideTitle":"SLIDE 08 02","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-08-02/768x1024-ipad-portrait.png"},{"id":"slide-08-02:844x390-iphone-12-13-landscape","slide":"slide-08-02","slideTitle":"SLIDE 08 02","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-08-02/844x390-iphone-12-13-landscape.png"},{"id":"slide-08-02:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-08-02","slideTitle":"SLIDE 08 02","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-08-02/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-08-02:1024x768-ipad-landscape","slide":"slide-08-02","slideTitle":"SLIDE 08 02","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-08-02/1024x768-ipad-landscape.png"},{"id":"slide-08-02:1280x720-desktop-1280x720","slide":"slide-08-02","slideTitle":"SLIDE 08 02","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-08-02/1280x720-desktop-1280x720.png"},{"id":"slide-08-02:1366x768-desktop-1366x768","slide":"slide-08-02","slideTitle":"SLIDE 08 02","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-08-02/1366x768-desktop-1366x768.png"},{"id":"slide-08-02:1440x900-desktop-1440x900","slide":"slide-08-02","slideTitle":"SLIDE 08 02","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-08-02/1440x900-desktop-1440x900.png"},{"id":"slide-08-02:1920x1080-desktop-1920x1080","slide":"slide-08-02","slideTitle":"SLIDE 08 02","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-08-02/1920x1080-desktop-1920x1080.png"},{"id":"slide-08-02:2560x1440-desktop-2560x1440","slide":"slide-08-02","slideTitle":"SLIDE 08 02","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-08-02/2560x1440-desktop-2560x1440.png"},{"id":"slide-09:375x667-iphone-se","slide":"slide-09","slideTitle":"SLIDE 09","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-09/375x667-iphone-se.png"},{"id":"slide-09:390x844-iphone-12-13","slide":"slide-09","slideTitle":"SLIDE 09","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-09/390x844-iphone-12-13.png"},{"id":"slide-09:430x932-iphone-14-15-16-17-pro-max","slide":"slide-09","slideTitle":"SLIDE 09","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-09/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-09:667x375-iphone-se-landscape","slide":"slide-09","slideTitle":"SLIDE 09","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-09/667x375-iphone-se-landscape.png"},{"id":"slide-09:768x1024-ipad-portrait","slide":"slide-09","slideTitle":"SLIDE 09","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-09/768x1024-ipad-portrait.png"},{"id":"slide-09:844x390-iphone-12-13-landscape","slide":"slide-09","slideTitle":"SLIDE 09","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-09/844x390-iphone-12-13-landscape.png"},{"id":"slide-09:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-09","slideTitle":"SLIDE 09","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-09/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-09:1024x768-ipad-landscape","slide":"slide-09","slideTitle":"SLIDE 09","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-09/1024x768-ipad-landscape.png"},{"id":"slide-09:1280x720-desktop-1280x720","slide":"slide-09","slideTitle":"SLIDE 09","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-09/1280x720-desktop-1280x720.png"},{"id":"slide-09:1366x768-desktop-1366x768","slide":"slide-09","slideTitle":"SLIDE 09","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-09/1366x768-desktop-1366x768.png"},{"id":"slide-09:1440x900-desktop-1440x900","slide":"slide-09","slideTitle":"SLIDE 09","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-09/1440x900-desktop-1440x900.png"},{"id":"slide-09:1920x1080-desktop-1920x1080","slide":"slide-09","slideTitle":"SLIDE 09","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-09/1920x1080-desktop-1920x1080.png"},{"id":"slide-09:2560x1440-desktop-2560x1440","slide":"slide-09","slideTitle":"SLIDE 09","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-09/2560x1440-desktop-2560x1440.png"},{"id":"slide-10:375x667-iphone-se","slide":"slide-10","slideTitle":"SLIDE 10","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-10/375x667-iphone-se.png"},{"id":"slide-10:390x844-iphone-12-13","slide":"slide-10","slideTitle":"SLIDE 10","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-10/390x844-iphone-12-13.png"},{"id":"slide-10:430x932-iphone-14-15-16-17-pro-max","slide":"slide-10","slideTitle":"SLIDE 10","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-10/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-10:667x375-iphone-se-landscape","slide":"slide-10","slideTitle":"SLIDE 10","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-10/667x375-iphone-se-landscape.png"},{"id":"slide-10:768x1024-ipad-portrait","slide":"slide-10","slideTitle":"SLIDE 10","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-10/768x1024-ipad-portrait.png"},{"id":"slide-10:844x390-iphone-12-13-landscape","slide":"slide-10","slideTitle":"SLIDE 10","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-10/844x390-iphone-12-13-landscape.png"},{"id":"slide-10:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-10","slideTitle":"SLIDE 10","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-10/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-10:1024x768-ipad-landscape","slide":"slide-10","slideTitle":"SLIDE 10","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-10/1024x768-ipad-landscape.png"},{"id":"slide-10:1280x720-desktop-1280x720","slide":"slide-10","slideTitle":"SLIDE 10","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-10/1280x720-desktop-1280x720.png"},{"id":"slide-10:1366x768-desktop-1366x768","slide":"slide-10","slideTitle":"SLIDE 10","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-10/1366x768-desktop-1366x768.png"},{"id":"slide-10:1440x900-desktop-1440x900","slide":"slide-10","slideTitle":"SLIDE 10","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-10/1440x900-desktop-1440x900.png"},{"id":"slide-10:1920x1080-desktop-1920x1080","slide":"slide-10","slideTitle":"SLIDE 10","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-10/1920x1080-desktop-1920x1080.png"},{"id":"slide-10:2560x1440-desktop-2560x1440","slide":"slide-10","slideTitle":"SLIDE 10","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-10/2560x1440-desktop-2560x1440.png"},{"id":"slide-11:375x667-iphone-se","slide":"slide-11","slideTitle":"SLIDE 11","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-11/375x667-iphone-se.png"},{"id":"slide-11:390x844-iphone-12-13","slide":"slide-11","slideTitle":"SLIDE 11","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-11/390x844-iphone-12-13.png"},{"id":"slide-11:430x932-iphone-14-15-16-17-pro-max","slide":"slide-11","slideTitle":"SLIDE 11","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-11/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-11:667x375-iphone-se-landscape","slide":"slide-11","slideTitle":"SLIDE 11","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-11/667x375-iphone-se-landscape.png"},{"id":"slide-11:768x1024-ipad-portrait","slide":"slide-11","slideTitle":"SLIDE 11","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-11/768x1024-ipad-portrait.png"},{"id":"slide-11:844x390-iphone-12-13-landscape","slide":"slide-11","slideTitle":"SLIDE 11","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-11/844x390-iphone-12-13-landscape.png"},{"id":"slide-11:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-11","slideTitle":"SLIDE 11","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-11/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-11:1024x768-ipad-landscape","slide":"slide-11","slideTitle":"SLIDE 11","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-11/1024x768-ipad-landscape.png"},{"id":"slide-11:1280x720-desktop-1280x720","slide":"slide-11","slideTitle":"SLIDE 11","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-11/1280x720-desktop-1280x720.png"},{"id":"slide-11:1366x768-desktop-1366x768","slide":"slide-11","slideTitle":"SLIDE 11","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-11/1366x768-desktop-1366x768.png"},{"id":"slide-11:1440x900-desktop-1440x900","slide":"slide-11","slideTitle":"SLIDE 11","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-11/1440x900-desktop-1440x900.png"},{"id":"slide-11:1920x1080-desktop-1920x1080","slide":"slide-11","slideTitle":"SLIDE 11","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-11/1920x1080-desktop-1920x1080.png"},{"id":"slide-11:2560x1440-desktop-2560x1440","slide":"slide-11","slideTitle":"SLIDE 11","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-11/2560x1440-desktop-2560x1440.png"},{"id":"slide-12:375x667-iphone-se","slide":"slide-12","slideTitle":"SLIDE 12","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-12/375x667-iphone-se.png"},{"id":"slide-12:390x844-iphone-12-13","slide":"slide-12","slideTitle":"SLIDE 12","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-12/390x844-iphone-12-13.png"},{"id":"slide-12:430x932-iphone-14-15-16-17-pro-max","slide":"slide-12","slideTitle":"SLIDE 12","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-12/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-12:667x375-iphone-se-landscape","slide":"slide-12","slideTitle":"SLIDE 12","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-12/667x375-iphone-se-landscape.png"},{"id":"slide-12:768x1024-ipad-portrait","slide":"slide-12","slideTitle":"SLIDE 12","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-12/768x1024-ipad-portrait.png"},{"id":"slide-12:844x390-iphone-12-13-landscape","slide":"slide-12","slideTitle":"SLIDE 12","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-12/844x390-iphone-12-13-landscape.png"},{"id":"slide-12:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-12","slideTitle":"SLIDE 12","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-12/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-12:1024x768-ipad-landscape","slide":"slide-12","slideTitle":"SLIDE 12","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-12/1024x768-ipad-landscape.png"},{"id":"slide-12:1280x720-desktop-1280x720","slide":"slide-12","slideTitle":"SLIDE 12","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-12/1280x720-desktop-1280x720.png"},{"id":"slide-12:1366x768-desktop-1366x768","slide":"slide-12","slideTitle":"SLIDE 12","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-12/1366x768-desktop-1366x768.png"},{"id":"slide-12:1440x900-desktop-1440x900","slide":"slide-12","slideTitle":"SLIDE 12","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-12/1440x900-desktop-1440x900.png"},{"id":"slide-12:1920x1080-desktop-1920x1080","slide":"slide-12","slideTitle":"SLIDE 12","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-12/1920x1080-desktop-1920x1080.png"},{"id":"slide-12:2560x1440-desktop-2560x1440","slide":"slide-12","slideTitle":"SLIDE 12","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-12/2560x1440-desktop-2560x1440.png"},{"id":"slide-15:375x667-iphone-se","slide":"slide-15","slideTitle":"SLIDE 15","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-15/375x667-iphone-se.png"},{"id":"slide-15:390x844-iphone-12-13","slide":"slide-15","slideTitle":"SLIDE 15","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-15/390x844-iphone-12-13.png"},{"id":"slide-15:430x932-iphone-14-15-16-17-pro-max","slide":"slide-15","slideTitle":"SLIDE 15","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-15/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-15:667x375-iphone-se-landscape","slide":"slide-15","slideTitle":"SLIDE 15","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-15/667x375-iphone-se-landscape.png"},{"id":"slide-15:768x1024-ipad-portrait","slide":"slide-15","slideTitle":"SLIDE 15","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-15/768x1024-ipad-portrait.png"},{"id":"slide-15:844x390-iphone-12-13-landscape","slide":"slide-15","slideTitle":"SLIDE 15","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-15/844x390-iphone-12-13-landscape.png"},{"id":"slide-15:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-15","slideTitle":"SLIDE 15","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-15/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-15:1024x768-ipad-landscape","slide":"slide-15","slideTitle":"SLIDE 15","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-15/1024x768-ipad-landscape.png"},{"id":"slide-15:1280x720-desktop-1280x720","slide":"slide-15","slideTitle":"SLIDE 15","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-15/1280x720-desktop-1280x720.png"},{"id":"slide-15:1366x768-desktop-1366x768","slide":"slide-15","slideTitle":"SLIDE 15","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-15/1366x768-desktop-1366x768.png"},{"id":"slide-15:1440x900-desktop-1440x900","slide":"slide-15","slideTitle":"SLIDE 15","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-15/1440x900-desktop-1440x900.png"},{"id":"slide-15:1920x1080-desktop-1920x1080","slide":"slide-15","slideTitle":"SLIDE 15","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-15/1920x1080-desktop-1920x1080.png"},{"id":"slide-15:2560x1440-desktop-2560x1440","slide":"slide-15","slideTitle":"SLIDE 15","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-15/2560x1440-desktop-2560x1440.png"},{"id":"slide-16-01:375x667-iphone-se","slide":"slide-16-01","slideTitle":"SLIDE 16 01","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-16-01/375x667-iphone-se.png"},{"id":"slide-16-01:390x844-iphone-12-13","slide":"slide-16-01","slideTitle":"SLIDE 16 01","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-16-01/390x844-iphone-12-13.png"},{"id":"slide-16-01:430x932-iphone-14-15-16-17-pro-max","slide":"slide-16-01","slideTitle":"SLIDE 16 01","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-16-01/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-16-01:667x375-iphone-se-landscape","slide":"slide-16-01","slideTitle":"SLIDE 16 01","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-16-01/667x375-iphone-se-landscape.png"},{"id":"slide-16-01:768x1024-ipad-portrait","slide":"slide-16-01","slideTitle":"SLIDE 16 01","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-16-01/768x1024-ipad-portrait.png"},{"id":"slide-16-01:844x390-iphone-12-13-landscape","slide":"slide-16-01","slideTitle":"SLIDE 16 01","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-16-01/844x390-iphone-12-13-landscape.png"},{"id":"slide-16-01:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-16-01","slideTitle":"SLIDE 16 01","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-16-01/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-16-01:1024x768-ipad-landscape","slide":"slide-16-01","slideTitle":"SLIDE 16 01","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-16-01/1024x768-ipad-landscape.png"},{"id":"slide-16-01:1280x720-desktop-1280x720","slide":"slide-16-01","slideTitle":"SLIDE 16 01","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-16-01/1280x720-desktop-1280x720.png"},{"id":"slide-16-01:1366x768-desktop-1366x768","slide":"slide-16-01","slideTitle":"SLIDE 16 01","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-16-01/1366x768-desktop-1366x768.png"},{"id":"slide-16-01:1440x900-desktop-1440x900","slide":"slide-16-01","slideTitle":"SLIDE 16 01","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-16-01/1440x900-desktop-1440x900.png"},{"id":"slide-16-01:1920x1080-desktop-1920x1080","slide":"slide-16-01","slideTitle":"SLIDE 16 01","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-16-01/1920x1080-desktop-1920x1080.png"},{"id":"slide-16-01:2560x1440-desktop-2560x1440","slide":"slide-16-01","slideTitle":"SLIDE 16 01","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-16-01/2560x1440-desktop-2560x1440.png"},{"id":"slide-16-02:375x667-iphone-se","slide":"slide-16-02","slideTitle":"SLIDE 16 02","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-16-02/375x667-iphone-se.png"},{"id":"slide-16-02:390x844-iphone-12-13","slide":"slide-16-02","slideTitle":"SLIDE 16 02","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-16-02/390x844-iphone-12-13.png"},{"id":"slide-16-02:430x932-iphone-14-15-16-17-pro-max","slide":"slide-16-02","slideTitle":"SLIDE 16 02","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-16-02/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-16-02:667x375-iphone-se-landscape","slide":"slide-16-02","slideTitle":"SLIDE 16 02","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-16-02/667x375-iphone-se-landscape.png"},{"id":"slide-16-02:768x1024-ipad-portrait","slide":"slide-16-02","slideTitle":"SLIDE 16 02","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-16-02/768x1024-ipad-portrait.png"},{"id":"slide-16-02:844x390-iphone-12-13-landscape","slide":"slide-16-02","slideTitle":"SLIDE 16 02","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-16-02/844x390-iphone-12-13-landscape.png"},{"id":"slide-16-02:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-16-02","slideTitle":"SLIDE 16 02","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-16-02/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-16-02:1024x768-ipad-landscape","slide":"slide-16-02","slideTitle":"SLIDE 16 02","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-16-02/1024x768-ipad-landscape.png"},{"id":"slide-16-02:1280x720-desktop-1280x720","slide":"slide-16-02","slideTitle":"SLIDE 16 02","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-16-02/1280x720-desktop-1280x720.png"},{"id":"slide-16-02:1366x768-desktop-1366x768","slide":"slide-16-02","slideTitle":"SLIDE 16 02","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-16-02/1366x768-desktop-1366x768.png"},{"id":"slide-16-02:1440x900-desktop-1440x900","slide":"slide-16-02","slideTitle":"SLIDE 16 02","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-16-02/1440x900-desktop-1440x900.png"},{"id":"slide-16-02:1920x1080-desktop-1920x1080","slide":"slide-16-02","slideTitle":"SLIDE 16 02","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-16-02/1920x1080-desktop-1920x1080.png"},{"id":"slide-16-02:2560x1440-desktop-2560x1440","slide":"slide-16-02","slideTitle":"SLIDE 16 02","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-16-02/2560x1440-desktop-2560x1440.png"},{"id":"slide-16-03:375x667-iphone-se","slide":"slide-16-03","slideTitle":"SLIDE 16 03","resolutionKey":"375x667-iphone-se","resolutionTitle":"iphone-se","width":375,"height":667,"label":"iphone-se","relativePath":"./slide-16-03/375x667-iphone-se.png"},{"id":"slide-16-03:390x844-iphone-12-13","slide":"slide-16-03","slideTitle":"SLIDE 16 03","resolutionKey":"390x844-iphone-12-13","resolutionTitle":"iphone-12-13","width":390,"height":844,"label":"iphone-12-13","relativePath":"./slide-16-03/390x844-iphone-12-13.png"},{"id":"slide-16-03:430x932-iphone-14-15-16-17-pro-max","slide":"slide-16-03","slideTitle":"SLIDE 16 03","resolutionKey":"430x932-iphone-14-15-16-17-pro-max","resolutionTitle":"iphone-14-15-16-17-pro-max","width":430,"height":932,"label":"iphone-14-15-16-17-pro-max","relativePath":"./slide-16-03/430x932-iphone-14-15-16-17-pro-max.png"},{"id":"slide-16-03:667x375-iphone-se-landscape","slide":"slide-16-03","slideTitle":"SLIDE 16 03","resolutionKey":"667x375-iphone-se-landscape","resolutionTitle":"iphone-se-landscape","width":667,"height":375,"label":"iphone-se-landscape","relativePath":"./slide-16-03/667x375-iphone-se-landscape.png"},{"id":"slide-16-03:768x1024-ipad-portrait","slide":"slide-16-03","slideTitle":"SLIDE 16 03","resolutionKey":"768x1024-ipad-portrait","resolutionTitle":"ipad-portrait","width":768,"height":1024,"label":"ipad-portrait","relativePath":"./slide-16-03/768x1024-ipad-portrait.png"},{"id":"slide-16-03:844x390-iphone-12-13-landscape","slide":"slide-16-03","slideTitle":"SLIDE 16 03","resolutionKey":"844x390-iphone-12-13-landscape","resolutionTitle":"iphone-12-13-landscape","width":844,"height":390,"label":"iphone-12-13-landscape","relativePath":"./slide-16-03/844x390-iphone-12-13-landscape.png"},{"id":"slide-16-03:932x430-iphone-14-15-16-17-pro-max-landscape","slide":"slide-16-03","slideTitle":"SLIDE 16 03","resolutionKey":"932x430-iphone-14-15-16-17-pro-max-landscape","resolutionTitle":"iphone-14-15-16-17-pro-max-landscape","width":932,"height":430,"label":"iphone-14-15-16-17-pro-max-landscape","relativePath":"./slide-16-03/932x430-iphone-14-15-16-17-pro-max-landscape.png"},{"id":"slide-16-03:1024x768-ipad-landscape","slide":"slide-16-03","slideTitle":"SLIDE 16 03","resolutionKey":"1024x768-ipad-landscape","resolutionTitle":"ipad-landscape","width":1024,"height":768,"label":"ipad-landscape","relativePath":"./slide-16-03/1024x768-ipad-landscape.png"},{"id":"slide-16-03:1280x720-desktop-1280x720","slide":"slide-16-03","slideTitle":"SLIDE 16 03","resolutionKey":"1280x720-desktop-1280x720","resolutionTitle":"desktop-1280x720","width":1280,"height":720,"label":"desktop-1280x720","relativePath":"./slide-16-03/1280x720-desktop-1280x720.png"},{"id":"slide-16-03:1366x768-desktop-1366x768","slide":"slide-16-03","slideTitle":"SLIDE 16 03","resolutionKey":"1366x768-desktop-1366x768","resolutionTitle":"desktop-1366x768","width":1366,"height":768,"label":"desktop-1366x768","relativePath":"./slide-16-03/1366x768-desktop-1366x768.png"},{"id":"slide-16-03:1440x900-desktop-1440x900","slide":"slide-16-03","slideTitle":"SLIDE 16 03","resolutionKey":"1440x900-desktop-1440x900","resolutionTitle":"desktop-1440x900","width":1440,"height":900,"label":"desktop-1440x900","relativePath":"./slide-16-03/1440x900-desktop-1440x900.png"},{"id":"slide-16-03:1920x1080-desktop-1920x1080","slide":"slide-16-03","slideTitle":"SLIDE 16 03","resolutionKey":"1920x1080-desktop-1920x1080","resolutionTitle":"desktop-1920x1080","width":1920,"height":1080,"label":"desktop-1920x1080","relativePath":"./slide-16-03/1920x1080-desktop-1920x1080.png"},{"id":"slide-16-03:2560x1440-desktop-2560x1440","slide":"slide-16-03","slideTitle":"SLIDE 16 03","resolutionKey":"2560x1440-desktop-2560x1440","resolutionTitle":"desktop-2560x1440","width":2560,"height":1440,"label":"desktop-2560x1440","relativePath":"./slide-16-03/2560x1440-desktop-2560x1440.png"}]};
+    const state = { groupBy: 'slide' };
+    const cacheBustSeed = Date.now();
+    const head = document.getElementById('table-head');
+    const body = document.getElementById('table-body');
+    const stats = document.getElementById('stats');
+    const buttons = Array.from(document.querySelectorAll('[data-group]'));
+    const screenshotMap = new Map(data.screenshots.map((item) => [item.id, item]));
+
+    function cacheBustedPath(relativePath, index) {
+      return relativePath + '?ts=' + cacheBustSeed + '-' + index;
+    }
+
+    function getColumns() {
+      return state.groupBy === 'slide' ? data.resolutions : data.slides;
+    }
+
+    function getRows() {
+      return state.groupBy === 'slide' ? data.slides : data.resolutions;
+    }
+
+    function getRowTitle(row) {
+      return row.title;
+    }
+
+    function getColumnTitle(column) {
+      return column.title;
+    }
+
+    function lookupItem(row, column) {
+      if (state.groupBy === 'slide') {
+        return screenshotMap.get(row.key + ':' + column.key);
+      }
+
+      return screenshotMap.get(column.key + ':' + row.key);
+    }
+
+    function renderHeader(columns) {
+      const axisLabel = state.groupBy === 'slide' ? 'Slide' : 'Resolution';
+      const columnLabel = state.groupBy === 'slide' ? 'Resolutions' : 'Slides';
+      const headerCells = columns.map((column) => {
+        const detail = state.groupBy === 'slide'
+          ? column.width + ' x ' + column.height
+          : column.key;
+        return '<th class="header">' + getColumnTitle(column) + '<small>' + detail + '</small></th>';
+      }).join('');
+
+      head.innerHTML = '<tr><th class="axis">' + axisLabel + '<small>' + columnLabel + '</small></th>' + headerCells + '</tr>';
+    }
+
+    function renderRows(rows, columns) {
+      let imageIndex = 0;
+
+      body.innerHTML = rows.map((row) => {
+        const detail = state.groupBy === 'slide'
+          ? row.key
+          : row.width + ' x ' + row.height;
+
+        const cells = columns.map((column) => {
+          const item = lookupItem(row, column);
+          if (!item) {
+            return '<td><div class="missing">No screenshot</div></td>';
+          }
+
+          imageIndex += 1;
+          const bustedPath = cacheBustedPath(item.relativePath, imageIndex);
+          return [
+            '<td>',
+            '  <div class="cell">',
+            '    <a class="thumb-link" href="' + bustedPath + '" target="_blank" rel="noreferrer">',
+            '      <img loading="lazy" src="' + bustedPath + '" alt="' + item.slideTitle + ' at ' + item.resolutionTitle + '">',
+            '    </a>',
+            '    <div class="meta">',
+            '      <strong>' + item.slideTitle + '</strong>',
+            '      <span class="muted">' + item.width + ' x ' + item.height + ' · ' + item.label + '</span>',
+            '    </div>',
+            '  </div>',
+            '</td>',
+          ].join('');
+        }).join('');
+
+        return '<tr><th class="axis">' + getRowTitle(row) + '<small>' + detail + '</small></th>' + cells + '</tr>';
+      }).join('');
+    }
+
+    function renderStats() {
+      stats.textContent = data.slideCount + ' slides, ' + data.resolutions.length + ' resolutions, ' + data.screenshotCount + ' screenshots. Generated ' + data.generatedAt + '.';
+    }
+
+    function render() {
+      const columns = getColumns();
+      const rows = getRows();
+
+      buttons.forEach((button) => {
+        button.classList.toggle('active', button.dataset.group === state.groupBy);
+      });
+
+      renderHeader(columns);
+      renderRows(rows, columns);
+      renderStats();
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        state.groupBy = button.dataset.group;
+        render();
+      });
+    });
+
+    render();
+  </script>
+</body>
+</html>

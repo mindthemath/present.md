@@ -72,7 +72,12 @@ jobs:
 
           FOLDERS=$(bun -e "console.log(JSON.parse(require('fs').readFileSync('.screenshots/_screenshot_folders.json', 'utf8')).join(' '))")
           rm .screenshots/_screenshot_folders.json
+          cp .screenshots/view.html /tmp/view.html
           mv .screenshots/slide-* /tmp/
+
+          cp index.html /tmp/index.html
+          cp present.md /tmp/present.md
+          cp custom.css /tmp/custom.css
 
           git checkout main || git checkout master || true
           git branch -D screenshots 2>/dev/null || true
@@ -83,6 +88,11 @@ jobs:
           for f in $FOLDERS; do
             cp -r /tmp/$f .
           done
+
+          cp /tmp/view.html view.html
+          cp /tmp/index.html index.html
+          cp /tmp/present.md present.md
+          cp /tmp/custom.css custom.css
 
           cat > README.md << 'README_EOF'
           # Screenshot Branch
@@ -100,7 +110,7 @@ jobs:
           Each directory contains screenshots at various resolutions.
           README_EOF
 
-          git add slide-*/ README.md
+          git add slide-*/ view.html index.html present.md custom.css README.md
           git commit -m "Update slide deck screenshots [skip ci]"
           git push origin screenshots --force
 

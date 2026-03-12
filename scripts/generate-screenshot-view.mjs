@@ -204,7 +204,6 @@ function buildHtml(data) {
       line-height: 1.2;
     }
 
-    .subtitle,
     .stats {
       color: var(--muted);
       font-size: 14px;
@@ -378,8 +377,7 @@ function buildHtml(data) {
   <div class="page">
     <section class="toolbar">
       <div class="title">
-        <h1>Local Screenshot Viewer</h1>
-        <div class="subtitle">Open this file directly in a browser or serve the repo locally.</div>
+        <h1>Resolution Review</h1>
         <div class="stats" id="stats"></div>
       </div>
       <div class="controls" aria-label="Group screenshots">
@@ -440,7 +438,7 @@ function buildHtml(data) {
       const headerCells = columns.map((column) => {
         const detail = state.groupBy === 'slide'
           ? column.width + ' x ' + column.height
-          : column.width + ' x ' + column.height;
+          : column.key;
         return '<th class="header">' + getColumnTitle(column) + '<small>' + detail + '</small></th>';
       }).join('');
 
